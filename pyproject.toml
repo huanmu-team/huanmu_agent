@@ -1,12 +1,10 @@
 [project]
-name = "react-agent"
+name = "huanmu_agent"
 version = "0.0.1"
 description = "Starter template for making a custom Reasoning and Action agent (using tool calling) in LangGraph."
 authors = [
-    { name = "William Fu-Hinthorn", email = "13333726+hinthornw@users.noreply.github.com" },
+    { name = "danis", email = "deniswersion@gmail.com" },
 ]
-readme = "README.md"
-license = { text = "MIT" }
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "langgraph>=0.2.6",
@@ -15,10 +13,7 @@ dependencies = [
     "langchain>=0.2.14",
     "langchain-fireworks>=0.1.7",
     "python-dotenv>=1.0.1",
-    "langchain-tavily>=0.1",
 ]
-
-
 [project.optional-dependencies]
 dev = ["mypy>=1.11.1", "ruff>=0.6.1"]
 
@@ -27,10 +22,8 @@ requires = ["setuptools>=73.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["langgraph.templates.react_agent", "react_agent"]
-[tool.setuptools.package-dir]
-"langgraph.templates.react_agent" = "src/react_agent"
-"react_agent" = "src/react_agent"
+package-dir = {"" = "src"}
+packages = ["huanmu_agent"]
 
 
 [tool.setuptools.package-data]

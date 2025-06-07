@@ -7,8 +7,9 @@ from typing import Annotated
 
 from langchain_core.runnables import ensure_config
 from langgraph.config import get_config
+from langchain_core.prompts import ChatPromptTemplate
 
-from react_agent import prompts
+from huanmu_agent import prompts
 
 
 @dataclass(kw_only=True)
@@ -24,19 +25,19 @@ class Configuration:
     )
 
     model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="anthropic/claude-3-5-sonnet-20240620",
+        default="google_vertexai/gemini-2.5-flash-preview-05-20",
         metadata={
             "description": "The name of the language model to use for the agent's main interactions. "
             "Should be in the form: provider/model-name."
         },
     )
 
-    max_search_results: int = field(
-        default=10,
-        metadata={
-            "description": "The maximum number of search results to return for each search query."
-        },
-    )
+    # max_search_results: int = field(
+    #     default=10,
+    #     metadata={
+    #         "description": "The maximum number of search results to return for each search query."
+    #     },
+    # )
 
     @classmethod
     def from_context(cls) -> Configuration:
