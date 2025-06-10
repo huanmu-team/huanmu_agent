@@ -41,6 +41,12 @@ WeChatMomentStructure包含以下字段:
 class WeChatMomentStructure(BaseModel):
     """Structure for a single WeChat Moments post."""
     improved_moment: str = Field(description="优化后的朋友圈文案内容， 不要包含标签")
+
+class FinalWeChatMomentResponseFormat(BaseModel):
+    """The final output response format of the WeChat Moments generator agent."""
+    moments: List[WeChatMomentStructure] = Field(description="朋友圈文案列表")
+    error_message: Optional[str] = Field(description="错误信息", default=None)
+
 # --- Agent State ---
 
 class WeChatAgentState(AgentState):
@@ -49,6 +55,7 @@ class WeChatAgentState(AgentState):
     # Output
     final_output: List[WeChatMomentStructure]
     error_message: Optional[str]
+    structured_response: Optional[FinalWeChatMomentResponseFormat]
 
 class WeChatMomentConfigSchema(TypedDict):
     system_prompt: str = MOMENT_SYSTEM_PROMPT
@@ -56,11 +63,6 @@ class WeChatMomentConfigSchema(TypedDict):
 
 class WeChatAgentStateInput(TypedDict):
     row_moment: str
-
-class FinalWeChatMomentResponseFormat(BaseModel):
-    """The final output response format of the WeChat Moments generator agent."""
-    moments: List[WeChatMomentStructure] = Field(description="朋友圈文案列表")
-    error_message: Optional[str] = Field(description="错误信息", default=None)
 
 # --- System Prompt ---
 
