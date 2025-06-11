@@ -98,14 +98,20 @@ async def wechat_agent_node(state: WeChatAgentState, config: RunnableConfig):
     """
     Node that invokes the WeChat Moments content generator agent asynchronously.
     """
+
+    
     row_moment = state.get("row_moment", "N/A")
     topic = config["configurable"].get("topic", "N/A")
     system_prompt = config["configurable"].get("system_prompt", MOMENT_SYSTEM_PROMPT)
+    print(f"system_prompt: {system_prompt}")
+
     current_conversation_messages = state.get("messages", [])
 
     # If this is the first turn, we need to create the initial message.
     if not current_conversation_messages:
-        current_conversation_messages = [HumanMessage(content=f"请帮我生成朋友圈文案。\n\n微信朋友圈原始内容：{row_moment}\n\n用户主题：{topic}")]
+        system_msg = [{"role": "system", "content": system_prompt}]
+        user_msg = [{"role": "user", "content": f"请帮我生成朋友圈文案。\n\n微信朋友圈原始内容：{row_moment}\n\n用户主题：{topic}"}]
+        current_conversation_messages = system_msg + user_msg
     
     agent_input_payload = {"messages": current_conversation_messages}
     

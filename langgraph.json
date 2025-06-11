@@ -2,7 +2,7 @@
   "dependencies": ["."],
   "graphs": {
     "agent": "./src/huanmu_agent/graph.py:graph",
-    "wechat_moment_agent": "./src/huanmu_agent/wechat/moment_agent.py:graph"
+    "wechat_moment_agent": "./src/huanmu_agent/wechat/moment_agent.py:wechat_moment_graph"
   },
   "env": ".env"
 }
