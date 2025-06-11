@@ -94,64 +94,50 @@ wechat_generator_agent = create_react_agent(
     prompt=prompt
 )
 
-# --- Agent Node ---
+async def wechat_agent_node(state: WeChatAgentState, config: RunnableConfig):
+    """
+    Node that invokes the WeChat Moments content generator agent asynchronously.
+    """
+    row_moment = state.get("row_moment", "N/A")
+    topic = config["configurable"].get("topic", "N/A")
+    system_prompt = config["configurable"].get("system_prompt", MOMENT_SYSTEM_PROMPT)
+    current_conversation_messages = state.get("messages", [])
 
-# def wechat_agent_node(state: WeChatAgentState):
-#     """
-#     Node that invokes the WeChat Moments content generator agent.
-#     """
-
-#     dynamic_system_prompt = MOMENT_SYSTEM_PROMPT
-#     row_moment = state.get("row_moment", "N/A")
-
-#     current_conversation_messages = state.get("messages", [])
-
-#     if not current_conversation_messages:
-#         current_conversation_messages = [HumanMessage(content=f"请帮我生成朋友圈文案。\n\n{row_moment}")]
-#     else:
-#         processed_messages = []
-#         for msg in current_conversation_messages:
-#             if isinstance(msg, dict):
-#                 if msg.get("role") == "user":
-#                     processed_messages.append(HumanMessage(content=msg.get("content", "")))
-#             elif isinstance(msg, BaseMessage):
-#                 processed_messages.append(msg)
-#         current_conversation_messages = processed_messages
-
-#     agent_input_messages = [SystemMessage(content=dynamic_system_prompt)] + current_conversation_messages
+    # If this is the first turn, we need to create the initial message.
+    if not current_conversation_messages:
+        current_conversation_messages = [HumanMessage(content=f"请帮我生成朋友圈文案。\n\n微信朋友圈原始内容：{row_moment}\n\n用户主题：{topic}")]
     
-#     agent_input_payload = {"messages": agent_input_messages}
+    agent_input_payload = {"messages": current_conversation_messages}
     
-#     try:
-#         print("---WECHAT AGENT EXECUTING---")
-#         print(f"Invoking WeChat agent with topic: {content_topic}")
+    try:
+        print("---WECHAT AGENT EXECUTING---")
+        print(f"Invoking WeChat agent with topic: {row_moment}")
         
-#         agent_response = wechat_generator_agent.invoke(agent_input_payload)
+        # Use ainvoke for asynchronous execution and pass the config
+        agent_response = await wechat_generator_agent.ainvoke(agent_input_payload, config)
         
-#         structured_response = agent_response.get("structured_response")
-#         if structured_response:
-#              final_output = structured_response.moments
-#         else:
-#             final_output = []
+        structured_response = agent_response.get("structured_response")
+        if structured_response:
+             final_output = structured_response.moments
+        else:
+            final_output = []
 
-#         return {
-#             "final_output": final_output,
-#             "error_message": None,
-#             "messages": agent_response.get("messages", [])
-#         }
+        return {
+            "final_output": final_output,
+            "error_message": None,
+            "messages": agent_response.get("messages", [])
+        }
         
-#     except Exception as e:
-#         print(f"Error during WeChat agent invocation: {e}")
-#         error_message = f"Error generating WeChat Moments content: {e}"
-#         return {"error_message": error_message}
+    except Exception as e:
+        print(f"Error during WeChat agent invocation: {e}")
+        error_message = f"Error generating WeChat Moments content: {e}"
+        return {"error_message": error_message}
 
-# # --- Graph Definition ---
+# --- Graph Definition ---
 
-# wechat_workflow_graph = (
-#     StateGraph(WeChatAgentState, input=WeChatAgentStateInput)
-#     .add_node("wechat_generator", wechat_agent_node)
-#     .add_edge(START, "wechat_generator")
-#     .compile()
-# )
-
-# wechat_workflow = wechat_workflow_graph
+wechat_moment_graph = (
+    StateGraph(WeChatAgentState, input=WeChatAgentStateInput)
+    .add_node("wechat_generator", wechat_agent_node)
+    .add_edge(START, "wechat_generator")
+    .compile()
+)
