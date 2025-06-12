@@ -8,6 +8,8 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 from langchain.chat_models import init_chat_model
 from typing import List, Optional
 from langchain_core.runnables import RunnableConfig
+import asyncio
+from constant import GOOGLE_GEMINI_FLASH_MODEL
 
 MOMENT_SYSTEM_PROMPT = """
 你是一个微信朋友圈文案生成助手。
@@ -53,7 +55,6 @@ class WeChatAgentState(AgentState):
     # Input parameters
     row_moment: str
     # Output
-    final_output: List[WeChatMomentStructure]
     error_message: Optional[str]
     structured_response: Optional[FinalWeChatMomentResponseFormat]
 
@@ -67,10 +68,9 @@ class WeChatAgentStateInput(TypedDict):
 # --- System Prompt ---
 
 # Using the model ID found in constant.py to avoid import issues.
-GEMINI_PRO_MODEL_ID = "gemini-2.5-pro-preview-06-05"
 
 chat_model = init_chat_model(
-    model=GEMINI_PRO_MODEL_ID,
+    model=GOOGLE_GEMINI_FLASH_MODEL,
     model_provider="google_vertexai",
     temperature=0.7 # A bit more creative for social media
 )
@@ -79,9 +79,12 @@ def prompt(
     state: AgentState,
     config: RunnableConfig,
 ) -> list[AnyMessage]:
-    topic = config["configurable"].get("topic")
-    system_prompt = config["configurable"].get("system_prompt")
-    system_msg = f"{system_prompt} User's topic is {topic}"
+    topic = config["configurable"].get("topic","")
+    system_prompt = config["configurable"].get("system_prompt", MOMENT_SYSTEM_PROMPT)
+    if not topic == "":
+        system_msg = f"{system_prompt} User's topic is {topic}"
+    else:
+        system_msg = system_prompt
     return [{"role": "system", "content": system_msg}] + state["messages"]
 
 wechat_generator_agent = create_react_agent(
@@ -97,39 +100,35 @@ wechat_generator_agent = create_react_agent(
 async def wechat_agent_node(state: WeChatAgentState, config: RunnableConfig):
     """
     Node that invokes the WeChat Moments content generator agent asynchronously.
-    """
-
-    
+    """    
     row_moment = state.get("row_moment", "N/A")
     topic = config["configurable"].get("topic", "N/A")
     system_prompt = config["configurable"].get("system_prompt", MOMENT_SYSTEM_PROMPT)
-    print(f"system_prompt: {system_prompt}")
-
+    print(f"-------------------------------topic-----------------------------------------{topic}")
+    print(f"-------------------------------system_prompt-----------------------------------------{system_prompt}")
     current_conversation_messages = state.get("messages", [])
-
+    print(f"current_conversation_messages: {current_conversation_messages}")
     # If this is the first turn, we need to create the initial message.
     if not current_conversation_messages:
         system_msg = [{"role": "system", "content": system_prompt}]
         user_msg = [{"role": "user", "content": f"请帮我生成朋友圈文案。\n\n微信朋友圈原始内容：{row_moment}\n\n用户主题：{topic}"}]
+        print(f"system_msg: {system_msg}")
+        print(f"user_msg: {user_msg}")
         current_conversation_messages = system_msg + user_msg
-    
-    agent_input_payload = {"messages": current_conversation_messages}
     
     try:
         print("---WECHAT AGENT EXECUTING---")
         print(f"Invoking WeChat agent with topic: {row_moment}")
         
-        # Use ainvoke for asynchronous execution and pass the config
-        agent_response = await wechat_generator_agent.ainvoke(agent_input_payload, config)
+        # run the blocking agent in a thread
+        agent_response = await asyncio.to_thread(
+            wechat_generator_agent.invoke,   # sync version
+            {"messages": current_conversation_messages},
+            config
+        )
         
-        structured_response = agent_response.get("structured_response")
-        if structured_response:
-             final_output = structured_response.moments
-        else:
-            final_output = []
-
         return {
-            "final_output": final_output,
+            "structured_response": agent_response.get("structured_response"),
             "error_message": None,
             "messages": agent_response.get("messages", [])
         }
@@ -142,7 +141,7 @@ async def wechat_agent_node(state: WeChatAgentState, config: RunnableConfig):
 # --- Graph Definition ---
 
 wechat_moment_graph = (
-    StateGraph(WeChatAgentState, input=WeChatAgentStateInput)
+    StateGraph(WeChatAgentState, input=WeChatAgentStateInput, config_schema=WeChatMomentConfigSchema)
     .add_node("wechat_generator", wechat_agent_node)
     .add_edge(START, "wechat_generator")
     .compile()
