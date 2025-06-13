@@ -2,7 +2,8 @@
   "dependencies": ["."],
   "graphs": {
     "agent": "./src/huanmu_agent/graph.py:graph",
-    "wechat_moment_agent": "./src/huanmu_agent/wechat/moment_agent.py:wechat_moment_graph"
+    "wechat_moment_agent": "./src/huanmu_agent/wechat/moment_agent.py:wechat_moment_graph",
+    "sales_chat_suggestion_agent": "./src/huanmu_agent/sales/sale_advice_agent.py:sales_chat_suggestion_graph"
   },
   "env": ".env"
 }

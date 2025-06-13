@@ -54,6 +54,7 @@ class FinalWeChatMomentResponseFormat(BaseModel):
 class WeChatAgentState(AgentState):
     # Input parameters
     row_moment: str
+    moment_number: int
     # Output
     error_message: Optional[str]
     structured_response: Optional[FinalWeChatMomentResponseFormat]
@@ -64,6 +65,7 @@ class WeChatMomentConfigSchema(TypedDict):
 
 class WeChatAgentStateInput(TypedDict):
     row_moment: str
+    moment_number: int
 
 # --- System Prompt ---
 
@@ -102,6 +104,7 @@ async def wechat_agent_node(state: WeChatAgentState, config: RunnableConfig):
     Node that invokes the WeChat Moments content generator agent asynchronously.
     """    
     row_moment = state.get("row_moment", "N/A")
+    moment_number = state.get("moment_number", 1)
     topic = config["configurable"].get("topic", "N/A")
     system_prompt = config["configurable"].get("system_prompt", MOMENT_SYSTEM_PROMPT)
     print(f"-------------------------------topic-----------------------------------------{topic}")
@@ -111,7 +114,7 @@ async def wechat_agent_node(state: WeChatAgentState, config: RunnableConfig):
     # If this is the first turn, we need to create the initial message.
     if not current_conversation_messages:
         system_msg = [{"role": "system", "content": system_prompt}]
-        user_msg = [{"role": "user", "content": f"请帮我生成朋友圈文案。\n\n微信朋友圈原始内容：{row_moment}\n\n用户主题：{topic}"}]
+        user_msg = [{"role": "user", "content": f"请帮我生成朋友圈文案。\n\n微信朋友圈原始内容：{row_moment}\n\n用户主题：{topic}\n\n生成数量：{moment_number}"}]
         print(f"system_msg: {system_msg}")
         print(f"user_msg: {user_msg}")
         current_conversation_messages = system_msg + user_msg
