@@ -24,4 +24,4 @@ def load_chat_model(fully_specified_name: str) -> BaseChatModel:
         fully_specified_name (str): String in the format 'provider/model'.
     """
     provider, model = fully_specified_name.split("/", maxsplit=1)
-    return init_chat_model(model, model_provider=provider)
+    return init_chat_model(model, model_provider=provider, temperature=0.6)
