@@ -57,8 +57,6 @@ chat_model = init_chat_model(
     model_provider="google_vertexai",
     temperature=0.7,  # Balanced creativity
 )
-
-
 # Prompt builder
 
 def prompt(state: AgentState, config: RunnableConfig) -> List[AnyMessage]:

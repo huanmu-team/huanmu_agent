@@ -53,8 +53,15 @@ class State(InputState):
     It is set to 'True' when the step count reaches recursion_limit - 1.
     """
 
+    last_message: str = ""
     # Additional attributes can be added here as needed.
     # Common examples include:
     # retrieved_documents: List[Document] = field(default_factory=list)
-    # extracted_entities: Dict[str, Any] = field(default_factory=dict)
-    # api_connections: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class SalesAgentStateOutput:
+    """Represents the output of the sales agent."""
+    last_message: str = field(default= "")
+    
+    
+
