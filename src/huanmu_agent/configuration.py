@@ -14,8 +14,6 @@ from huanmu_agent import prompts
 
 @dataclass(kw_only=True)
 class Configuration:
-    """The configuration for the agent."""
-
     system_prompt: str = field(
         default=prompts.BEAUTY_CARE_V1_SYSTEM_PROMPT,
         metadata={
@@ -31,6 +29,16 @@ class Configuration:
             "Should be in the form: provider/model-name."
         },
     )
+    
+    temperature: float = field(
+        default=0.6,
+        metadata={
+            "description": "The temperature of the language model to use for the agent's main interactions. "
+            "Should be in the form: provider/model-name."
+        },
+    )
+    
+   
 
     # max_search_results: int = field(
     #     default=10,
