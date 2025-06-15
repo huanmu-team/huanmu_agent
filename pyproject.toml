@@ -16,7 +16,15 @@ dependencies = [
     "langchain-google-vertexai<=2.0.19",
 ]
 [project.optional-dependencies]
-dev = ["mypy>=1.11.1", "ruff>=0.6.1"]
+dev = [
+    "mypy>=1.11.1",
+    "ruff>=0.6.1",
+    "pytest>=8.3.5",
+    "pytest-watch>=4.2.0",
+    "pytest-profile>=1.0.0",
+    "codespell>=2.2.6",
+    "langgraph-cli[inmem]>=0.1.71"
+]
 
 [build-system]
 requires = ["setuptools>=73.0.0", "wheel"]
@@ -25,7 +33,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = ["huanmu_agent"]
-
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
@@ -43,19 +50,9 @@ lint.select = [
 lint.ignore = [
     "UP006",
     "UP007",
-    # We actually do want to import from typing_extensions
-    "UP035",
-    # Relax the convention by _not_ requiring documentation for every function parameter.
-    "D417",
-    "E501",
+    "UP035", # Allow typing_extensions imports
+    "D417",  # Relax docstring requirements
+    "E501",  # Line length
 ]
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = ["D", "UP"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[dependency-groups]
-dev = [
-    "langgraph-cli[inmem]>=0.1.71",
-    "pytest>=8.3.5",
-]

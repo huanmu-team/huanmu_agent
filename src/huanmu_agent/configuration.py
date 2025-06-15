@@ -25,7 +25,7 @@ class Configuration:
     )
 
     model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="google_vertexai/gemini-2.5-flash-preview-05-20",
+        default="openai/gpt-3.5-turbo",
         metadata={
             "description": "The name of the language model to use for the agent's main interactions. "
             "Should be in the form: provider/model-name."

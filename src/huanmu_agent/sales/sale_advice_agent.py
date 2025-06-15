@@ -9,7 +9,6 @@ from langchain.chat_models import init_chat_model
 from typing import List, Optional
 from langchain_core.runnables import RunnableConfig
 import asyncio
-from constant import GOOGLE_GEMINI_FLASH_MODEL
 
 # --- System Prompt ---
 
@@ -51,10 +50,10 @@ class ChatReplyConfigSchema(TypedDict):
 class ChatReplyAgentStateInput(TypedDict):
     messages: List[BaseMessage]
 
-# Initialize chat model (reuse constant to avoid import issues)
+# Initialize chat model
 chat_model = init_chat_model(
-    model=GOOGLE_GEMINI_FLASH_MODEL,
-    model_provider="google_vertexai",
+    model="gpt-3.5-turbo",
+    model_provider="openai", 
     temperature=0.7,  # Balanced creativity
 )
 
