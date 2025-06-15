@@ -6,6 +6,7 @@ Works with a chat model with tool calling support.
 import asyncio
 from datetime import UTC, datetime
 from typing import Dict, List, Literal, cast, Any
+from zoneinfo import ZoneInfo
 
 from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.graph import StateGraph, START, END
@@ -36,10 +37,12 @@ async def call_model(state: State) -> Dict[str, Any]:
     # Initialize the model with tool binding. Change the model or add more tools here.
     model = load_chat_model(configuration.model, configuration.temperature).bind_tools(TOOLS)
 
-    # Format the system prompt. Customize this to change the agent's behavior.
-    system_message = configuration.system_prompt.format(
-        system_time=datetime.now(tz=UTC).isoformat()
-    )
+    # Use Beijing time (UTC+8) instead of UTC and append the current time in Chinese.
+    beijing_now = datetime.now(tz=ZoneInfo("Asia/Shanghai")).isoformat()
+    # First, substitute any {system_time} placeholder in the prompt if present.
+    system_prompt_text = configuration.system_prompt.format(system_time=beijing_now)
+    # Then, explicitly append the current time in Chinese for clarity.
+    system_message = f"{system_prompt_text}\n目前时间：{beijing_now}"
 
     # Get the model's response
     response = cast(
