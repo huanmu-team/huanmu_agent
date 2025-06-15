@@ -43,7 +43,7 @@ async def call_model(state: State) -> Dict[str, Any]:
         # First, substitute any {system_time} placeholder in the prompt if present.
         system_prompt_text = configuration.system_prompt.format(system_time=beijing_now)
         # Then, explicitly append the current time in Chinese for clarity.
-        return f"{system_prompt_text}\n目前时间：{beijing_now}"
+        return f"目前时间：{beijing_now}\n{system_prompt_text}"
 
     system_message = await asyncio.to_thread(_prepare_system_message)
 
