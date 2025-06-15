@@ -34,15 +34,18 @@ async def call_model(state: State) -> Dict[str, Any]:
     """
     configuration = Configuration.from_context()
 
-    # Initialize the model with tool binding. Change the model or add more tools here.
+    # Initialize the model with tool binding in a background thread to avoid blocking.
     model = load_chat_model(configuration.model, configuration.temperature).bind_tools(TOOLS)
 
-    # Use Beijing time (UTC+8) instead of UTC and append the current time in Chinese.
-    beijing_now = datetime.now(tz=ZoneInfo("Asia/Shanghai")).isoformat()
-    # First, substitute any {system_time} placeholder in the prompt if present.
-    system_prompt_text = configuration.system_prompt.format(system_time=beijing_now)
-    # Then, explicitly append the current time in Chinese for clarity.
-    system_message = f"{system_prompt_text}\n目前时间：{beijing_now}"
+    def _prepare_system_message():
+        # Use Beijing time (UTC+8) instead of UTC and append the current time in Chinese.
+        beijing_now = datetime.now(tz=ZoneInfo("Asia/Shanghai")).isoformat()
+        # First, substitute any {system_time} placeholder in the prompt if present.
+        system_prompt_text = configuration.system_prompt.format(system_time=beijing_now)
+        # Then, explicitly append the current time in Chinese for clarity.
+        return f"{system_prompt_text}\n目前时间：{beijing_now}"
+
+    system_message = await asyncio.to_thread(_prepare_system_message)
 
     # Get the model's response
     response = cast(
