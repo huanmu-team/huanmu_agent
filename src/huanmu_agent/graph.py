@@ -34,7 +34,7 @@ async def call_model(state: State) -> Dict[str, Any]:
     configuration = Configuration.from_context()
 
     # Initialize the model with tool binding. Change the model or add more tools here.
-    model = load_chat_model(configuration.model).bind_tools(TOOLS)
+    model = load_chat_model(configuration.model, configuration.temperature).bind_tools(TOOLS)
 
     # Format the system prompt. Customize this to change the agent's behavior.
     system_message = configuration.system_prompt.format(
