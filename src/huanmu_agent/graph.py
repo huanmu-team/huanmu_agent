@@ -15,7 +15,8 @@ from langgraph.prebuilt import ToolNode
 from huanmu_agent.configuration import Configuration
 from huanmu_agent.state import InputState, State, SalesAgentStateOutput
 from huanmu_agent.tools import TOOLS
-from huanmu_agent.utils import load_chat_model
+from huanmu_agent.utils.langchain_utils import load_chat_model
+
 
 # Define the function that calls the model
 
