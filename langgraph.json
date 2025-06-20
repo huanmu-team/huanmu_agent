@@ -4,7 +4,7 @@
     "agent": "./src/huanmu_agent/graph.py:graph",
     "wechat_moment_agent": "./src/huanmu_agent/wechat/moment_agent.py:wechat_moment_graph",
     "sales_chat_suggestion_agent": "./src/huanmu_agent/sales/sale_advice_agent.py:sales_chat_suggestion_graph",
-    "user_analysis_reports": "./src/huanmu_agent/analysis_reports/user_analysis_reports.py:user_analysis_graph"
+    "user_analysis_reports": "./src/huanmu_agent/analysis_report/user_analysis_reports.py:user_analysis_graph"
   },
   "env": ".env"
 }
