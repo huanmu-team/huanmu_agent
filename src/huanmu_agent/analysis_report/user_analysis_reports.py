@@ -9,6 +9,8 @@ from typing_extensions import TypedDict
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import asyncio
+
+from constant import GOOGLE_GEMINI_FLASH_MODEL
 class UserChunkSummaryResponse(BaseModel):
     user_chunk_summary: Optional[str] = Field(description="用户情况总结")
     error_message: Optional[str] = Field(default=None, description="出错时的错误信息")
@@ -42,7 +44,11 @@ class ChatReplyAgentStateInput(TypedDict):
 
 
 # llm = init_chat_model(model="gpt-4o", temperature=0.7, model_provider="openai")
-llm = ChatTongyi(model="qwen-turbo", temperature=0.7)
+llm = init_chat_model(
+    model=GOOGLE_GEMINI_FLASH_MODEL,
+    model_provider="google_vertexai",
+    temperature=0.7,  # Balanced creativity
+)
 def prompt_recommendation(state: AgentState) -> List[AnyMessage]:
     system_msg = f"""
 你是一名资深医美顾问，以下是医美AI客服与用户的完整多轮对话内容：{state["messages"]}
