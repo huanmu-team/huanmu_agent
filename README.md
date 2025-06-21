@@ -1,6 +1,6 @@
 # HuanMu Agent
 
-A custom Reasoning and Action agent built using LangGraph, designed for sales and user profile management.
+A custom Reasoning and Action agent built using LangGraph, designed for sales, user profile management and WeChat integration.
 
 ## Project Structure
 
@@ -8,79 +8,121 @@ A custom Reasoning and Action agent built using LangGraph, designed for sales an
 .
 ├── .gitignore
 ├── constant.py
-├── langgraph.json
 ├── Makefile
-├── novel_danis_vertexai_credential.json
 ├── pyproject.toml
 ├── README.md
 └── src/
     ├── huanmu_agent/
     │   ├── __init__.py
-    │   ├── configuration.py
-    │   ├── graph.py
-    │   ├── prompts.py
-    │   ├── state.py
-    │   ├── tools.py
-    │   ├── utils.py
+    │   ├── configuration.py - Core agent configuration
+    │   ├── graph.py - Main agent workflow definitions
+    │   ├── prompts.py - System and user prompts
+    │   ├── state.py - Agent state management
+    │   ├── tools.py - Core agent tools
+    │   ├── utils.py - Utility functions
     │   ├── sales/
-    │   │   ├── sale_advice_agent.py
-    │   │   └── tools.py
+    │   │   ├── sale_advice_agent.py - Sales recommendation agent
+    │   │   └── tools.py - Sales-specific tools
     │   ├── user_profile/
-    │   │   └── profile_agent.py
+    │   │   ├── profile_agent.py - User profile management agent
+    │   │   └── profile_variables.py - Profile variables definitions
     │   └── wechat/
-    │       ├── configuration.py
-    │       └── moment_agent.py
+    │       ├── configuration.py - WeChat integration settings
+    │       └── moment_agent.py - WeChat Moments posting agent
 ```
 
 ## Features
 
-- Sales advice agent with custom tools
-- User profile management capabilities
-- Built on LangGraph for flexible agent workflows
+### Core Capabilities
+- Flexible agent workflows using LangGraph
+- State management for conversation tracking
+- Custom tool integration system
+
+### Sales Module
+- Sales advice generation
+- Product recommendation tools
+- Customer interaction analysis
+
+### User Profile Module
+- User preference tracking
+- Profile variable management
+- Personalized content generation
+
+### WeChat Module
+- WeChat Moments posting automation
+- Social media integration
+- Content scheduling
 
 ## Getting Started
 
-1. Install dependencies:
+### Prerequisites
+- Python 3.10+
+- Poetry (recommended)
+
+### Installation
 ```bash
 pip install -e ".[dev]"
 ```
 
-2. Create a `.env` file:
+### Configuration
+1. Copy environment file:
 ```bash
 cp .env.example .env
 ```
 
-3. Configure API keys in `.env`:
+2. Set required API keys:
 ```
-OPENAI_API_KEY=your-key
-ANTHROPIC_API_KEY=your-key
+OPENAI_API_KEY=your-key-here
+ANTHROPIC_API_KEY=your-key-here
+```
+
+## Usage Examples
+
+### Running the Sales Agent
+```python
+from src.huanmu_agent.sales.sale_advice_agent import SalesAgent
+
+agent = SalesAgent()
+response = agent.run("What products should I recommend to this customer?")
+print(response)
+```
+
+### Posting to WeChat Moments
+```python
+from src.huanmu_agent.wechat.moment_agent import WeChatMomentAgent
+
+agent = WeChatMomentAgent()
+agent.post_moment("Check out our new product line!")
 ```
 
 ## Development
 
-Run tests:
+### Testing
 ```bash
 make test
 ```
 
-Run linters:
+### Linting
 ```bash
 make lint
 ```
 
-Format code:
+### Formatting
 ```bash
 make format
 ```
 
-## Configuration
+## Configuration Options
 
-The agent can be configured via:
-- `src/huanmu_agent/configuration.py` - Core settings
-- `.env` file - API keys and environment variables
+Key configuration files:
+- `src/huanmu_agent/configuration.py` - Core agent settings
+- `.env` - Environment variables
+- `src/huanmu_agent/wechat/configuration.py` - WeChat integration settings
 
-## Customization
+## Contributing
 
-1. Add new tools in `src/huanmu_agent/tools.py` or module-specific tools files
-2. Modify agent logic in `src/huanmu_agent/graph.py`
-3. Update prompts in `src/huanmu_agent/prompts.py`
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+Please ensure all tests pass and code is properly formatted before submitting.
