@@ -216,7 +216,11 @@ async def profile_agent_node(state: ProfileAgentState, config: RunnableConfig):
         )
         
         # 直接返回UserProfileStructure实例
-        return agent_response
+        return {
+            "structured_response": agent_response.get("structured_response"),
+            "error_message": None,
+            "messages": current_conversation_messages,
+        }
     
     except Exception as e:
         print(f"Error during profile agent invocation: {e}")

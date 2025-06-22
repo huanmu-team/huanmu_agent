@@ -195,6 +195,7 @@ async def profile_agent_node(state: ProfileAgentState, config: RunnableConfig):
         return {
             "structured_response": agent_response.get("structured_response"),
             "error_message": None,
+            "messages": current_conversation_messages,
         }
     
     except Exception as e:
