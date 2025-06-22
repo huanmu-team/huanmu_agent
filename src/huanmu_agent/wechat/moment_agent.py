@@ -9,7 +9,6 @@ from langchain.chat_models import init_chat_model
 from typing import List, Optional
 from langchain_core.runnables import RunnableConfig
 import asyncio
-from constant import GOOGLE_GEMINI_FLASH_MODEL
 
 MOMENT_SYSTEM_PROMPT = """
 你是一个微信朋友圈文案生成助手。
@@ -69,11 +68,10 @@ class WeChatAgentStateInput(TypedDict):
 
 # --- System Prompt ---
 
-# Using the model ID found in constant.py to avoid import issues.
-
+# Initialize chat model with OpenAI
 chat_model = init_chat_model(
-    model=GOOGLE_GEMINI_FLASH_MODEL,
-    model_provider="google_vertexai",
+    model="gpt-3.5-turbo",
+    model_provider="openai",
     temperature=0.7 # A bit more creative for social media
 )
 
