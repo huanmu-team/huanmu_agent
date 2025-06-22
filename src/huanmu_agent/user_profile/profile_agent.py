@@ -31,7 +31,7 @@ PROFILE_SYSTEM_PROMPT = """
 1. 输出必须完全符合指定的JSON结构，任何偏差都将导致系统错误
 2. 每个标签必须从以下预定义类别中选择，禁止自行发明新标签
 3. 必须执行同义词归一化，确保相同概念使用统一表述
-4. 对于不确定的信息必须使用["未知"]，禁止猜测或编造
+4. 对于不确定的信息可以留空，禁止猜测或编造
 5. 必须从用户输入中推断尽可能多的信息，填充到各个字段中，确保信息全面且准确
 6. 在持续对话中，必须严格保留之前提取的所有信息，除非新输入信息与之前信息明确冲突，否则不得更改已有信息
 
@@ -75,7 +75,7 @@ PROFILE_SYSTEM_PROMPT = """
 4. 根据用户输入的语气、用词和上下文推断额外信息（如情感、消费意愿等），确保推断合理且准确
 5. 在持续对话中，基于之前的画像信息进行更新，严格保留已有信息，除非新信息与旧信息明确冲突，否则仅补充新信息
 6. 验证JSON结构完整性
-7. 确保所有字段都有值（或["未知"]）
+7. 确保所有字段都有值（如果实在无法推断出，可以留空）
 
 # 归一化规则示例
 - occupation: "医生"、"医师"、"大夫" → "医生"
@@ -107,15 +107,54 @@ PROFILE_SYSTEM_PROMPT = """
     "retention_strategy_list": str(profile_variables["customer_lifecycle"]["retention_strategy"])
 }
 
+class socialProfilestructure(BaseModel):
+    occupation: Optional[str] = Field(None, description="职业")
+    age: Optional[str] = Field(None, description="年龄") 
+    region: Optional[str] = Field(None, description="地区")
+    lifestyle: Optional[str] = Field(None, description="生活方式")
+    family_status: Optional[str] = Field(None, description="家庭状况")
+    emotion: Optional[str] = Field(None, description="情感状态")
+
+class personality_traits_structure(BaseModel):
+    character: Optional[str] = Field(None, description="性格特征")
+    values: Optional[str] = Field(None, description="价值观")
+    aesthetic_style: Optional[str] = Field(None, description="审美风格")
+
+class consumption_profile_structure(BaseModel):
+    ability: Optional[str] = Field(None, description="消费能力")
+    willingness: Optional[str] = Field(None, description="消费意愿") 
+    preferences: Optional[str] = Field(None, description="消费偏好")
+
+class product_intent_structure(BaseModel):
+    current_use: Optional[str] = Field(None, description="当前使用产品")
+    potential_needs: Optional[str] = Field(None, description="潜在需求")
+    decision_factors: Optional[str] = Field(None, description="决策因素")
+    purchase_intent_score: Optional[str] = Field(None, description="购买意向评分")
+
+class customer_lifecycle_structure(BaseModel):
+    stage: Optional[str] = Field(None, description="客户生命周期阶段")
+    value: Optional[str] = Field(None, description="客户价值")
+    retention_strategy: Optional[str] = Field(None, description="留存策略")
+
 class UserProfileStructure(BaseModel):
     """用户画像数据结构"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    social_profile: socialProfilestructure = Field(default_factory=dict, description="社会属性")
+    personality_traits: personality_traits_structure = Field(default_factory=dict, description="个性特征")
+    consumption_profile: consumption_profile_structure = Field(default_factory=dict, description="消费画像")
+    product_intent: product_intent_structure = Field(default_factory=dict, description="产品意向")
+    customer_lifecycle: customer_lifecycle_structure = Field(default_factory=dict, description="客户生命周期")
+
+# class UserProfileStructure(BaseModel):
+#     """用户画像数据结构"""
+#     model_config = ConfigDict(arbitrary_types_allowed=True)
     
-    social_profile: dict = Field(default_factory=lambda: profile_variables["social_profile"])
-    personality_traits: dict = Field(default_factory=lambda: profile_variables["personality_traits"])
-    consumption_profile: dict = Field(default_factory=lambda: profile_variables["consumption_profile"])
-    product_intent: dict = Field(default_factory=lambda: profile_variables["product_intent"])
-    customer_lifecycle: dict = Field(default_factory=lambda: profile_variables["customer_lifecycle"])
+#     social_profile: dict = Field(default_factory=lambda: profile_variables["social_profile"])
+#     personality_traits: dict = Field(default_factory=lambda: profile_variables["personality_traits"])
+#     consumption_profile: dict = Field(default_factory=lambda: profile_variables["consumption_profile"])
+#     product_intent: dict = Field(default_factory=lambda: profile_variables["product_intent"])
+#     customer_lifecycle: dict = Field(default_factory=lambda: profile_variables["customer_lifecycle"])
 
 class ProfileAgentState(AgentState):
     error_message: Optional[str]
@@ -150,7 +189,7 @@ def build_profile_prompt(state: AgentState, config: RunnableConfig) -> List[Base
         messages.extend(state.messages)
 
     # 添加生成画像的指令
-    messages.append(HumanMessage(content="请严格按照指定的 JSON 结构输出用户画像，分析以上对话内容，结合其中的用户表达和行为线索，尽量完善五大维度的用户画像内容。若某些信息无法判断，请填写\"未知\"，但不要随意编造与上下文无关的内容。如果这是持续对话，请基于之前的画像信息进行更新和补充，严格保留之前提取的所有信息，除非新信息与旧信息明确冲突，否则仅补充新信息。特别注意年龄等关键信息的准确性，确保与用户提供的信息一致。禁止输出除 JSON 结构外的任何其他文本或问候语。"))
+    messages.append(HumanMessage(content="请严格按照指定的 JSON 结构输出用户画像，分析以上对话内容，结合其中的用户表达和行为线索，尽量完善五大维度的用户画像内容。若某些信息确实无法判断，可以留空，但不要随意编造与上下文无关的内容。如果这是持续对话，请基于之前的画像信息进行更新和补充，严格保留之前提取的所有信息，除非新信息与旧信息明确冲突，否则仅补充新信息。特别注意年龄等关键信息的准确性，确保与用户提供的信息一致。禁止输出除 JSON 结构外的任何其他文本或问候语。"))
 
     return messages
 
@@ -176,18 +215,12 @@ async def profile_agent_node(state: ProfileAgentState, config: RunnableConfig):
             config,
         )
         
-        # 直接使用agent返回的结构化数据
-        return {
-            "structured_response": agent_response,
-            "error_message": None,
-        }
+        # 直接返回UserProfileStructure实例
+        return agent_response
     
     except Exception as e:
         print(f"Error during profile agent invocation: {e}")
-        return {
-            "structured_response": UserProfileStructure(),
-            "error_message": str(e)
-        }
+        return UserProfileStructure()
 
 # 构建工作流
 profile_graph = (
