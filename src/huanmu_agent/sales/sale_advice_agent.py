@@ -14,7 +14,8 @@ from constant import GOOGLE_GEMINI_FLASH_MODEL
 # --- System Prompt ---
 
 REPLY_SYSTEM_PROMPT = """
-你是一个聊天回复建议助手。根据用户的输入内容、对话上下文、语言风格，提供指定条可供用户选择的回复。
+你是一个聊天回复建议助手。 你的任务是为销售人员和客服人员提供示例回复，帮助他们更好地与客户沟通。
+根据用户的输入内容、对话上下文、语言风格，提供指定条示例回复。
 
 输出应该是一个 list[ChatReplyStructure] 对象。
 ChatReplyStructure 包含以下字段:
@@ -62,6 +63,7 @@ chat_model = init_chat_model(
 def prompt(state: AgentState, config: RunnableConfig) -> List[AnyMessage]:
     reply_number = config["configurable"].get("number", 3)
     system_msg_content = f"{REPLY_SYSTEM_PROMPT} 回复数量: {reply_number}"
+    print(f"system_msg_content: {system_msg_content}")
     return [{"role": "system", "content": system_msg_content}] + state["messages"]
 
 
@@ -81,8 +83,8 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
     """Node that invokes the Chat Reply generator agent asynchronously."""
 
     current_conversation_messages = state.get("messages", [])
-    reply_number = config["configurable"].get("number", 3)
     print(f"current_conversation_messages: {current_conversation_messages}")
+    reply_number = config["configurable"].get("number", 3)
 
     # If this is the first turn, construct initial messages
     if not current_conversation_messages:
@@ -93,8 +95,6 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
                 "content": f"请帮我生成聊天回复。\n\n 回复数量：{reply_number}",
             }
         ]
-        print(f"system_msg: {system_msg}")
-        print(f"user_msg: {user_msg}")
         current_conversation_messages = system_msg + user_msg
 
     try:
@@ -105,11 +105,13 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
             {"messages": current_conversation_messages},
             config,
         )
-
+        # print("=============================")
+        # print(f"messages: {state.messages}")
+        # print("++++++++++++++++++++++++++++")
         return {
             "structured_response": agent_response.get("structured_response"),
             "error_message": None,
-            "messages": agent_response.get("messages", []),
+            "messages": current_conversation_messages,
         }
 
     except Exception as e:
