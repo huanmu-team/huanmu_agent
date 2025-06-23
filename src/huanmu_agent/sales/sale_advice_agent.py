@@ -66,7 +66,6 @@ chat_model = init_chat_model(
 def prompt(state: AgentState, config: RunnableConfig) -> List[AnyMessage]:
     reply_number = config["configurable"].get("number", 3)
     system_msg_content = f"{REPLY_SYSTEM_PROMPT} 回复数量: {reply_number}"
-    print(f"system_msg_content: {system_msg_content}")
     return [{"role": "system", "content": system_msg_content}] + state["messages"]
 
 
