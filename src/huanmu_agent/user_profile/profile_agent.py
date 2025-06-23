@@ -10,6 +10,8 @@ from typing_extensions import TypedDict
 from langchain_core.runnables import RunnableConfig
 import asyncio
 
+from constant import GOOGLE_GEMINI_FLASH_MODEL
+
 PROFILE_SYSTEM_PROMPT = """
 你是一个专业的用户画像生成助手。根据用户提供的基本信息、行为数据和偏好，生成详细的用户画像。
 
@@ -22,21 +24,20 @@ PROFILE_SYSTEM_PROMPT = """
 }
 
 要求：
-1. 每个字段必须提供具体内容, 不能为空
-2. 内容要详细具体，包含示例说明
-3. 必须返回纯JSON格式,不要包含任何额外文本或注释
+1. 如果聊天记录为空，则对应字段返回空字符串
+2. 必须返回纯JSON格式,不要包含任何额外文本或注释
 """
 
 class UserProfileStructure(BaseModel):
     """用户画像数据结构"""
-    demographic: str = Field(description="人口统计特征")
-    behavioral: str = Field(description="行为特征") 
-    psychological: str = Field(description="心理特征")
-    pain_points: str = Field(description="需求痛点")
+    demographic: str = Field(description="人口统计特征，如果聊天记录为空 可以为空", default="")
+    behavioral: str = Field(description="行为特征，可以为空", default="") 
+    psychological: str = Field(description="心理特征，可以为空", default="")
+    pain_points: str = Field(description="需求痛点，可以为空", default="")
 
 class ProfileAgentState(AgentState):
-    error_message: Optional[str]
-    structured_response: Optional[UserProfileStructure]
+    error_message: Optional[str] = None
+    structured_response: Optional[UserProfileStructure] = None
 
 class ProfileConfigSchema(TypedDict):
     pass
@@ -44,15 +45,19 @@ class ProfileConfigSchema(TypedDict):
 class ProfileAgentStateInput(TypedDict):
     messages: List[BaseMessage]
 
+class ProfileAgentResponseFormat(BaseModel):
+    user_profile: UserProfileStructure = Field(description="用户画像，可以为空")
+    error_message: Optional[str] = None
+
 class ProfileAgentStateOutput(TypedDict):
     structured_response: UserProfileStructure
 
 
 # 初始化模型
-profile_model = init_chat_model(
-    model="gpt-3.5-turbo",
-    model_provider="openai",
-    temperature=0.5
+chat_model = init_chat_model(
+    model=GOOGLE_GEMINI_FLASH_MODEL,
+    model_provider="google_vertexai",
+    temperature=0.7,  # Balanced creativity
 )
 
 def build_profile_prompt(state: AgentState, config: RunnableConfig) -> List[BaseMessage]:
@@ -64,8 +69,6 @@ def build_profile_prompt(state: AgentState, config: RunnableConfig) -> List[Base
     # 添加历史对话作为上下文
     if isinstance(state, dict):
         messages.extend(state.get("messages", []))
-    else:
-        messages.extend(state.messages)
 
     # 添加生成画像的指令
     messages.append(HumanMessage(content="请根据以上对话历史生成用户画像"))
@@ -74,18 +77,25 @@ def build_profile_prompt(state: AgentState, config: RunnableConfig) -> List[Base
 
 # 创建agent
 profile_agent = create_react_agent(
-    model=profile_model,
+    model=chat_model,
     tools=[],
     name="profile_agent",
     state_schema=ProfileAgentState,
     config_schema=ProfileConfigSchema,
-    response_format=UserProfileStructure,
+    response_format=ProfileAgentResponseFormat,
     prompt=build_profile_prompt,
 )
 
 async def profile_agent_node(state: ProfileAgentState, config: RunnableConfig):
     """调用用户画像生成agent"""
     current_conversation_messages = state.get("messages", [])
+
+    if not current_conversation_messages:
+        return {
+            "structured_response": UserProfileStructure(),
+            "error_message": None,
+            "messages": [],
+        }
     
     try:
         agent_response = await asyncio.to_thread(
