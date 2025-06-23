@@ -52,6 +52,9 @@ class ChatReplyConfigSchema(TypedDict):
 class ChatReplyAgentStateInput(TypedDict):
     messages: List[BaseMessage]
 
+class ChatReplyAgentOutput(TypedDict):
+    structured_response: Optional[FinalChatReplyResponseFormat]
+
 # Initialize chat model (reuse constant to avoid import issues)
 chat_model = init_chat_model(
     model=GOOGLE_GEMINI_FLASH_MODEL,
@@ -105,9 +108,7 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
             {"messages": current_conversation_messages},
             config,
         )
-        # print("=============================")
-        # print(f"messages: {state.messages}")
-        # print("++++++++++++++++++++++++++++")
+
         return {
             "structured_response": agent_response.get("structured_response"),
             "error_message": None,
@@ -123,7 +124,7 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
 # --- Graph Definition ---
 
 sales_chat_suggestion_graph = (
-    StateGraph(ChatReplyAgentState, input=ChatReplyAgentStateInput, config_schema=ChatReplyConfigSchema)
+    StateGraph(ChatReplyAgentState, input=ChatReplyAgentStateInput, config_schema=ChatReplyConfigSchema, output=ChatReplyAgentOutput)
     .add_node("chat_reply_generator", chat_reply_agent_node)
     .add_edge(START, "chat_reply_generator")
     .compile()

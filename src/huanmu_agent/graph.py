@@ -16,11 +16,7 @@ from huanmu_agent.configuration import Configuration
 from huanmu_agent.state import InputState, State, SalesAgentStateOutput
 from huanmu_agent.tools import TOOLS
 from huanmu_agent.utils.langchain_utils import load_chat_model
-
-
 # Define the function that calls the model
-
-
 async def call_model(state: State) -> Dict[str, Any]:
     """Call the LLM powering our "agent".
 

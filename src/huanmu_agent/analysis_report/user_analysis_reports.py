@@ -42,6 +42,9 @@ class UserAnalysisAgentState(AgentState):
 class ChatReplyAgentStateInput(TypedDict):
     messages: List[BaseMessage]
 
+class UserAnalysisAgentStateOutput(TypedDict):
+    structured_response: Optional[str]
+
 
 # llm = init_chat_model(model="gpt-4o", temperature=0.7, model_provider="openai")
 llm = init_chat_model(
@@ -337,7 +340,7 @@ recommendation_agent = create_react_agent(
 )
 
 industry_name = "医美"
-async def run_agent_node(agent, state: AgentState, config: RunnableConfig, role_desc="专家", messages_override=None):
+async def run_agent_node(agent, state: UserAnalysisAgentState, config: RunnableConfig, role_desc="专家", messages_override=None):
     current_conversation_messages = state.get("messages", [])
     if not current_conversation_messages:
         system_msg = [{"role": "system", "content": f"你是一个{industry_name}领域{role_desc}。"}]
@@ -432,7 +435,8 @@ user_analysis_graph = (
     StateGraph(
         UserSummaryAgentState,  # 可以继续用这个 State，AgentState 结构相同即可
         input=ChatReplyAgentStateInput,
-        config_schema=RunnableConfig
+        config_schema=RunnableConfig,
+        output=UserAnalysisAgentStateOutput
     )
     .add_node("parallel_analysis_node", parallel_analysis_node)     # 新并行节点
     .add_edge(START, "parallel_analysis_node")                      # 从 START 到并行节点
