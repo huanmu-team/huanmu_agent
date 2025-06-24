@@ -1,0 +1,2 @@
+GOOGLE_GEMINI_FLASH_MODEL = "gemini-2.5-flash-preview-05-20"
+GOOGLE_GEMINI_PRO_MODEL = "gemini-2.5-pro-preview-05-06"
