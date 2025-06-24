@@ -141,11 +141,11 @@ class customer_lifecycle_structure(BaseModel):
 class UserProfileStructure(BaseModel):
     """用户画像数据结构"""
 
-    social_profile: socialProfilestructure = Field(default_factory=dict, description="社会属性")
-    personality_traits: personality_traits_structure = Field(default_factory=dict   , description="个性特征")
-    consumption_profile: consumption_profile_structure = Field(default_factory=dict, description="消费画像")
-    product_intent: product_intent_structure = Field(default_factory=dict, description="产品意向")
-    customer_lifecycle: customer_lifecycle_structure = Field(default_factory=dict, description="客户生命周期")
+    social_profile: socialProfilestructure = Field(default_factory=dict, description="社会属性,可以为空")
+    personality_traits: personality_traits_structure = Field(default_factory=dict   , description="个性特征，可以为空")
+    consumption_profile: consumption_profile_structure = Field(default_factory=dict, description="消费画像，可以为空")
+    product_intent: product_intent_structure = Field(default_factory=dict, description="产品意向，可以为空")
+    customer_lifecycle: customer_lifecycle_structure = Field(default_factory=dict, description="客户生命周期，可以为空")
 
 # class UserProfileStructure(BaseModel):
 #     """用户画像数据结构"""
@@ -170,12 +170,11 @@ class ProfileLabelAgentStateInput(TypedDict):
 class ProfileLabelAgentResponseFormat(BaseModel):
     """The final output response format of the Profile generator agent."""
 
-    structured_response: UserProfileStructure = Field(description="用户画像标签")
+    user_profile_label: UserProfileStructure = Field(description="用户画像标签")
     error_message: Optional[str] = Field(description="错误信息", default=None)
 
 class ProfileLabelAgentStateOutput(TypedDict):
-    structured_response: UserProfileStructure
-    error_message: Optional[str]
+    structured_response: ProfileLabelAgentResponseFormat
 
 # 初始化模型
 chat_model = init_chat_model(
@@ -229,6 +228,7 @@ async def profile_agent_node(state: ProfileLabelAgentState, config: RunnableConf
         # 直接返回UserProfileStructure实例
         return {
             "structured_response": agent_response.get("structured_response"),
+            "messages": current_conversation_messages,
             "error_message": None,
         }
 
