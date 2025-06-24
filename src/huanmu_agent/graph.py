@@ -38,7 +38,11 @@ async def call_model(state: State) -> Dict[str, Any]:
     configuration = Configuration.from_context()
 
     # Initialize the model with tool binding in a background thread to avoid blocking.
-    model = load_chat_model(configuration.model, configuration.temperature).bind_tools(TOOLS)
+    # model = load_chat_model(configuration.model, configuration.temperature).bind_tools(TOOLS)
+    model = await asyncio.to_thread(
+        lambda: load_chat_model(configuration.model, configuration.temperature)
+    )
+    model=model.bind_tools(TOOLS)
 
     def _prepare_system_message():
         # Use Beijing time (UTC+8) instead of UTC and append the current time in Chinese.
