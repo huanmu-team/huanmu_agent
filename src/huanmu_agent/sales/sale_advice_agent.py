@@ -107,6 +107,8 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
             {"messages": current_conversation_messages},
             config,
         )
+        
+        print(f"agent_response: {agent_response}")
 
         return {
             "structured_response": agent_response.get("structured_response"),
