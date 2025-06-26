@@ -9,11 +9,13 @@ from langchain.chat_models import init_chat_model
 from typing import List, Optional
 from langchain_core.runnables import RunnableConfig
 import asyncio
+from constant import GOOGLE_GEMINI_FLASH_MODEL
 
 # --- System Prompt ---
 
 REPLY_SYSTEM_PROMPT = """
-你是一个聊天回复建议助手。根据用户的输入内容、对话上下文、语言风格，提供指定条可供用户选择的回复。
+你是一个聊天回复建议助手。 你的任务是为销售人员和客服人员提供示例回复，帮助他们更好地与客户沟通。
+根据用户的输入内容、对话上下文、语言风格，提供指定条示例回复。
 
 输出应该是一个 list[ChatReplyStructure] 对象。
 ChatReplyStructure 包含以下字段:
@@ -50,14 +52,15 @@ class ChatReplyConfigSchema(TypedDict):
 class ChatReplyAgentStateInput(TypedDict):
     messages: List[BaseMessage]
 
-# Initialize chat model
+class ChatReplyAgentOutput(TypedDict):
+    structured_response: Optional[FinalChatReplyResponseFormat]
+
+# Initialize chat model (reuse constant to avoid import issues)
 chat_model = init_chat_model(
-    model="gpt-3.5-turbo",
-    model_provider="openai", 
+    model=GOOGLE_GEMINI_FLASH_MODEL,
+    model_provider="google_vertexai",
     temperature=0.7,  # Balanced creativity
 )
-
-
 # Prompt builder
 
 def prompt(state: AgentState, config: RunnableConfig) -> List[AnyMessage]:
@@ -82,8 +85,8 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
     """Node that invokes the Chat Reply generator agent asynchronously."""
 
     current_conversation_messages = state.get("messages", [])
-    reply_number = config["configurable"].get("number", 3)
     print(f"current_conversation_messages: {current_conversation_messages}")
+    reply_number = config["configurable"].get("number", 3)
 
     # If this is the first turn, construct initial messages
     if not current_conversation_messages:
@@ -94,8 +97,6 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
                 "content": f"请帮我生成聊天回复。\n\n 回复数量：{reply_number}",
             }
         ]
-        print(f"system_msg: {system_msg}")
-        print(f"user_msg: {user_msg}")
         current_conversation_messages = system_msg + user_msg
 
     try:
@@ -110,7 +111,7 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
         return {
             "structured_response": agent_response.get("structured_response"),
             "error_message": None,
-            "messages": agent_response.get("messages", []),
+            "messages": current_conversation_messages,
         }
 
     except Exception as e:
@@ -122,7 +123,7 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
 # --- Graph Definition ---
 
 sales_chat_suggestion_graph = (
-    StateGraph(ChatReplyAgentState, input=ChatReplyAgentStateInput, config_schema=ChatReplyConfigSchema)
+    StateGraph(ChatReplyAgentState, input=ChatReplyAgentStateInput, config_schema=ChatReplyConfigSchema, output=ChatReplyAgentOutput)
     .add_node("chat_reply_generator", chat_reply_agent_node)
     .add_edge(START, "chat_reply_generator")
     .compile()

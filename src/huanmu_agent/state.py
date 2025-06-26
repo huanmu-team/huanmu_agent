@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Sequence
+from uuid import UUID
 
 from langchain_core.messages import AnyMessage
 from langgraph.graph import add_messages
@@ -38,13 +39,13 @@ class InputState:
     """
 
 
-@dataclass
+@dataclass(kw_only=True)
 class State(InputState):
     """Represents the complete state of the agent, extending InputState with additional attributes.
 
     This class can be used to store any information needed throughout the agent's lifecycle.
     """
-
+    # run_id: UUID
     is_last_step: IsLastStep = field(default=False)
     """
     Indicates whether the current step is the last one before the graph raises an error.
@@ -53,8 +54,17 @@ class State(InputState):
     It is set to 'True' when the step count reaches recursion_limit - 1.
     """
 
+    last_message: str = ""
     # Additional attributes can be added here as needed.
     # Common examples include:
     # retrieved_documents: List[Document] = field(default_factory=list)
-    # extracted_entities: Dict[str, Any] = field(default_factory=dict)
-    # api_connections: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass(kw_only=True)
+class SalesAgentStateOutput:
+    """Represents the output of the sales agent."""
+    # run_id: UUID
+    last_message: str = field(default= "")
+
+    
+    
+
