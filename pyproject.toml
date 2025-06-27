@@ -14,9 +14,11 @@ dependencies = [
     "langchain-fireworks>=0.1.7",
     "python-dotenv>=1.0.1",
     "langchain-google-vertexai<=2.0.19",
+    "pymilvus[model]>=2.3.7",
     "langchain-milvus",
     "langchain-community",
     "unstructured[all-docs]",
+    "pymilvus.model"
 ]
 [project.optional-dependencies]
 dev = [
