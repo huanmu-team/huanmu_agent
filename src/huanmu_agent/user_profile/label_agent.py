@@ -66,25 +66,25 @@ PROFILE_SYSTEM_PROMPT = """
 }
 你只能生成json格式的标签，不要输出其他内容
 """ % {
-    "occupation_list": str(profile_variables["social_profile"]["occupation"]),
-    "age_list": str(profile_variables["social_profile"]["age"]),
-    "region_list": str(profile_variables["social_profile"]["region"]),
-    "lifestyle_list": str(profile_variables["social_profile"]["lifestyle"]),
-    "family_status_list": str(profile_variables["social_profile"]["family_status"]),
-    "emotion_list": str(profile_variables["social_profile"]["emotion"]),
-    "character_list": str(profile_variables["personality_traits"]["character"]),
-    "values_list": str(profile_variables["personality_traits"]["values"]),
-    "aesthetic_style_list": str(profile_variables["personality_traits"]["aesthetic_style"]),
-    "ability_list": str(profile_variables["consumption_profile"]["ability"]),
-    "willingness_list": str(profile_variables["consumption_profile"]["willingness"]),
-    "preferences_list": str(profile_variables["consumption_profile"]["preferences"]),
-    "current_use_list": str(profile_variables["product_intent"]["current_use"]),
-    "potential_needs_list": str(profile_variables["product_intent"]["potential_needs"]),
-    "decision_factors_list": str(profile_variables["product_intent"]["decision_factors"]),
-    "purchase_intent_score_list": str(profile_variables["product_intent"]["purchase_intent_score"]),
-    "stage_list": str(profile_variables["customer_lifecycle"]["stage"]),
-    "value_list": str(profile_variables["customer_lifecycle"]["value"]),
-    "retention_strategy_list": str(profile_variables["customer_lifecycle"]["retention_strategy"])
+    "occupation_list": ",".join(profile_variables["social_profile"]["occupation"]),
+    "age_list": ",".join(profile_variables["social_profile"]["age"]),
+    "region_list": ",".join(profile_variables["social_profile"]["region"]),
+    "lifestyle_list": ",".join(profile_variables["social_profile"]["lifestyle"]),
+    "family_status_list": ",".join(profile_variables["social_profile"]["family_status"]),
+    "emotion_list": ",".join(profile_variables["social_profile"]["emotion"]),
+    "character_list": ",".join(profile_variables["personality_traits"]["character"]),
+    "values_list": ",".join(profile_variables["personality_traits"]["values"]),
+    "aesthetic_style_list": ",".join(profile_variables["personality_traits"]["aesthetic_style"]),
+    "ability_list": ",".join(profile_variables["consumption_profile"]["ability"]),
+    "willingness_list": ",".join(profile_variables["consumption_profile"]["willingness"]),
+    "preferences_list": ",".join(profile_variables["consumption_profile"]["preferences"]),
+    "current_use_list": ",".join(profile_variables["product_intent"]["current_use"]),
+    "potential_needs_list": ",".join(profile_variables["product_intent"]["potential_needs"]),
+    "decision_factors_list": ",".join(profile_variables["product_intent"]["decision_factors"]),
+    "purchase_intent_score_list": ",".join(profile_variables["product_intent"]["purchase_intent_score"]),
+    "stage_list": ",".join(profile_variables["customer_lifecycle"]["stage"]),
+    "value_list": ",".join(profile_variables["customer_lifecycle"]["value"]),
+    "retention_strategy_list": ",".join(profile_variables["customer_lifecycle"]["retention_strategy"])
 }
 
 class socialProfilestructure(BaseModel):
