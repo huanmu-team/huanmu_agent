@@ -46,12 +46,12 @@ class UserAnalysisAgentStateOutput(TypedDict):
     structured_response: Optional[str]
 
 
-llm = init_chat_model(model="gpt-4o", temperature=0.7, model_provider="openai")
-# llm = init_chat_model(
-#     model=GOOGLE_GEMINI_FLASH_MODEL,
-#     model_provider="google_vertexai",
-#     temperature=0.7,  # Balanced creativity
-# )
+# llm = init_chat_model(model="gpt-4o", temperature=0.7, model_provider="openai")
+llm = init_chat_model(
+    model=GOOGLE_GEMINI_FLASH_MODEL,
+    model_provider="google_vertexai",
+    temperature=0.7,  # Balanced creativity
+)
 def prompt_recommendation(state: AgentState) -> List[AnyMessage]:
     system_msg = f"""
 你是一名资深医美顾问，以下是医美AI客服与用户的完整多轮对话内容：{state["messages"][:-1]}
