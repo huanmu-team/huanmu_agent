@@ -87,24 +87,25 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
     current_conversation_messages = state.get("messages", [])
     print(f"current_conversation_messages: {current_conversation_messages}")
     reply_number = config["configurable"].get("number", 3)
-
-    # If this is the first turn, construct initial messages
-    if not current_conversation_messages:
-        system_msg = [{"role": "system", "content": REPLY_SYSTEM_PROMPT}]
-        user_msg = [
+    user_msg = [
             {
                 "role": "user",
                 "content": f"请帮我生成聊天回复。\n\n 回复数量：{reply_number}",
             }
         ]
-        current_conversation_messages = system_msg + user_msg
-
+    # If this is the first turn, construct initial messages
+    if not current_conversation_messages:
+        system_msg = [{"role": "system", "content": REPLY_SYSTEM_PROMPT}]
+        
+        new_current_conversation_messages = system_msg + user_msg
+    else:
+        new_current_conversation_messages = current_conversation_messages+user_msg
     try:
 
         # Run blocking agent in a thread
         agent_response = await asyncio.to_thread(
             chat_reply_generator_agent.invoke,
-            {"messages": current_conversation_messages},
+            {"messages": new_current_conversation_messages},
             config,
         )
         
