@@ -20,7 +20,7 @@ class GraphState(TypedDict):
         documents: A list of retrieved documents.
         generation: The generated response from the LLM.
         messages: A list of messages to track the conversation history.
-    """q
+    """
     query: str
     index_text: str
     messages: Annotated[List[BaseMessage], operator.add]

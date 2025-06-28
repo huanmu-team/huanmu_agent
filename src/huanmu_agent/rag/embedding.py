@@ -2,6 +2,7 @@ from typing import List
 from google.genai import types
 from pymilvus import model
 
+from constant import GEMINI_EMBEDDING_MODEL_EX_03_07
 from huanmu_agent.rag import GOOGLE_AI_STUDIO_API_KEY
 
 
@@ -39,7 +40,7 @@ def embedding_docs(documents: List[str]):
         )
 
         gemini_ef = model.dense.GeminiEmbeddingFunction(
-            model_name="gemini-embedding-exp-03-07",
+            model_name=GEMINI_EMBEDDING_MODEL_EX_03_07,
             api_key=GOOGLE_AI_STUDIO_API_KEY,
             config=retrieval_query_config
         )
@@ -57,7 +58,7 @@ def embedding_query(query: str):
         )
 
         gemini_ef = model.dense.GeminiEmbeddingFunction(
-            model_name="gemini-embedding-exp-03-07",
+            model_name=GEMINI_EMBEDDING_MODEL_EX_03_07,
             api_key=GOOGLE_AI_STUDIO_API_KEY,
             config=retrieval_query_config
         )
