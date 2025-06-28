@@ -7,7 +7,7 @@
     "user_analysis_reports": "./src/huanmu_agent/analysis_report/user_analysis_reports.py:user_analysis_graph",
     "profile_label_agent": "./src/huanmu_agent/user_profile/label_agent.py:profile_label_graph",
     "profile_agent": "./src/huanmu_agent/user_profile/profile_agent.py:profile_graph",
-    "comment_analysis_graph": "./src/huanmu_agent/Post_Comments/comment.py:comment_graph"
+    "comment_analysis_graph": "./src/huanmu_agent/Post_Comments/comment.py:comment_analysis_graph"
   },
   "env": ".env"
 }
