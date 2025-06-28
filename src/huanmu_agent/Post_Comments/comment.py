@@ -1,5 +1,5 @@
 """朋友圈评论 Agent - 处理文本和图片，生成评论."""
-from langchain_core.messages import AnyMessage, BaseMessage, AIMessage, HumanMessage
+from langchain_core.messages import AnyMessage, BaseMessage, AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import create_react_agent
 from langgraph.prebuilt.chat_agent_executor import AgentState
@@ -15,7 +15,7 @@ from constant import GOOGLE_GEMINI_FLASH_MODEL
 # 数据模型定义
 class CommentResponse(BaseModel):
     """朋友圈评论响应."""
-    comment: Optional[str] = Field(description="朋友圈评论")
+    comment: Optional[str] = Field(description="请你返回AI生成的朋友圈评论，不要包含任何解释或额外说明。")
     error_message: Optional[str] = Field(default=None, description="出错时的错误信息")
 
 class CharacterprofileConfigSchema(TypedDict):
@@ -41,22 +41,18 @@ class CommentAnalysisAgentStateOutput(TypedDict):
     structured_response: Optional[str]
 
 # 初始化模型 - 使用OpenAI避免Google Cloud配置问题
+# llm = init_chat_model(
+#     model="gpt-4o-mini",
+#     model_provider="openai",
+#     temperature=0.7,
+# )
+
+# 如果要使用Google Vertex AI，需要先配置认证：
 llm = init_chat_model(
-    model="gpt-4o-mini",
-    model_provider="openai",
+    model=GOOGLE_GEMINI_FLASH_MODEL,
+    model_provider="google_vertexai",
     temperature=0.7,
 )
-# llm = init_chat_model(
-#     model="gemini-2.5-flash",
-#     model_provider="google_vertexai",
-#     temperature=0.7,
-# )
-# 如果要使用Google Vertex AI，需要先配置认证：
-# llm = init_chat_model(
-#     model=GOOGLE_GEMINI_FLASH_MODEL,
-#     model_provider="google_vertexai",
-#     temperature=0.7,
-# )
 
 # 评论生成提示词
 def prompt_comment_generation(state: AgentState, config: RunnableConfig) -> List[AnyMessage]:
@@ -67,11 +63,17 @@ def prompt_comment_generation(state: AgentState, config: RunnableConfig) -> List
         latest_message = state["messages"][-1]
         messages_content = latest_message.content if hasattr(latest_message, 'content') else str(latest_message)
     
+    # 安全获取配置参数
+    configurable = config.get("configurable", {}) if config else {}
+    agent_name = configurable.get("agent_name", "小七")
+    agent_gender = configurable.get("agent_gender", "女")
+    agent_personality = configurable.get("agent_personality", "热情")
+    
     system_msg = f"""
-你是一个叫{config["configurable"].get("agent_name", "小七")}的{config["configurable"].get("agent_gender", "女")}性，性格{config["configurable"].get("agent_personalityget", "热情")}。
+你是一个叫{agent_name}的{agent_gender}性，性格{agent_personality}。
 
 【核心目标】
-你的评论目的是给朋友留下好印象，展现你是一个{config["configurable"].get("agent_personalityget", "热情")}的人。通过合适的评论来维护和增进人际关系。
+你的评论目的是给朋友留下好印象，展现你是一个{agent_personality}的人。通过合适的评论来维护和增进人际关系。
 
 【评论策略】
 1. 优先原则：能评论就评论，给人温暖正面的感受
@@ -94,7 +96,7 @@ def prompt_comment_generation(state: AgentState, config: RunnableConfig) -> List
 
 【评论风格要求】
 - 字数：3-25字，简洁而有温度
-- 语调：符合你的人设{config["configurable"].get("agent_personalityget", "热情")}
+- 语调：符合你的人设{agent_personality}
 - 互动性：体现关心，鼓励进一步交流
 - 避免：敷衍客套、过度表情符号、具体邀约安排
 - 减少使用标点符号装饰（如"~~""##"等）
@@ -107,10 +109,15 @@ def prompt_comment_generation(state: AgentState, config: RunnableConfig) -> List
 • 困难求助："抱抱，会好起来的" "需要帮忙随时找我"
 
 直接输出你的评论内容，不要包含任何解释或额外说明。
-
-朋友圈内容：{messages_content}
+========================================================
+朋友圈内容：
+{messages_content}
+========================================================
 """
-    return [{"role": "system", "content": system_msg}] + state["messages"]
+    return [
+        SystemMessage(content=system_msg),
+        HumanMessage(content="请根据以上朋友圈内容生成评论")
+    ]
 
 # 创建评论生成 Agent
 comment_generation_agent = create_react_agent(
@@ -123,14 +130,12 @@ comment_generation_agent = create_react_agent(
     prompt=prompt_comment_generation,
 )
 
-
-
 # 处理图片和文本的节点函数
 async def process_content_node(state: CommentAgentState, config: RunnableConfig) -> Dict[str, Any]:
     """处理朋友圈内容，包括文字和图片，转换为合适的文本格式传给大模型."""
     try:
         context = state.get("context", "")
-        urls = state.get("urls", [])
+        urls = state.get("urls") or []  # 确保urls不是None
         
         print(f"[DEBUG] 开始处理内容，context: {context}")
         print(f"[DEBUG] URLs: {urls}")
@@ -153,15 +158,15 @@ async def process_content_node(state: CommentAgentState, config: RunnableConfig)
         
         # 处理图片URL（如果提供了urls参数）
         urls_to_process = []
-        if urls:
+        if urls and isinstance(urls, list):  # 确保urls是有效的列表
             urls_to_process.extend(urls)
             
         if urls_to_process:
             print(f"[DEBUG] 开始处理{len(urls_to_process)}个图片URL...")
             image_descriptions = await process_images_to_descriptions(urls_to_process,llm)
-            
+
             if image_descriptions:
-                enhanced_content += f"\n\n图片描述：{' '.join(image_descriptions)}"
+                enhanced_content += f"\n\n{' '.join(image_descriptions)}"
                 print(f"[DEBUG] 添加图片描述后的enhanced_content: {enhanced_content}")
         
         # 创建消息用于评论生成
@@ -185,7 +190,7 @@ async def process_content_node(state: CommentAgentState, config: RunnableConfig)
             final_comment = "评论生成失败"
         
         print(f"[DEBUG] 最终评论: {final_comment}")
-        
+
         return {
             "structured_response": final_comment,
             "error_message": None,
@@ -194,7 +199,7 @@ async def process_content_node(state: CommentAgentState, config: RunnableConfig)
         
     except Exception as e:
         return {
-            "structured_response": f"处理失败: {str(e)}",
+            "structured_response": "",#当模型返回None时，这里返回""
             "error_message": str(e),
             "messages": []
         }
@@ -212,5 +217,3 @@ comment_analysis_graph = (
     .add_edge("process_content", END)
     .compile()
 )
-
-

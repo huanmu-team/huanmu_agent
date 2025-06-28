@@ -7,12 +7,13 @@ import re
 from constant import GOOGLE_GEMINI_FLASH_MODEL
 
 # 图片处理函数
-async def process_images_to_descriptions(urls: List[str],llm) -> List[str]:
+async def process_images_to_descriptions(urls: List[str], llm) -> List[str]:
     """
     处理多个图片URL，返回图片描述列表
 
     Args:
         urls: 图片URL列表
+        llm: 语言模型实例
 
     Returns:
         图片描述列表，如果处理失败则返回错误信息
@@ -31,11 +32,17 @@ async def process_images_to_descriptions(urls: List[str],llm) -> List[str]:
             continue
 
         try:
-            # 下载图片
+            # 下载图片 - 使用线程池避免阻塞事件循环
             print(f"[DEBUG] 开始下载图片: {url}")
-            # 使用同步requests，在异步环境中直接调用
-            response = await asyncio.to_thread(requests.get, url, timeout=10)
-            response.raise_for_status()
+            
+            def download_image(url):
+                """同步下载图片的函数，将在线程池中运行"""
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                return response
+            
+            # 在线程池中执行同步的网络请求
+            response = await asyncio.to_thread(download_image, url)
             print(f"[DEBUG] 图片下载成功，状态码: {response.status_code}")
 
             # 转换为base64
@@ -46,7 +53,7 @@ async def process_images_to_descriptions(urls: List[str],llm) -> List[str]:
             print("[DEBUG] 开始调用视觉模型分析图片...")
             vision_message = HumanMessage(
                 content=[
-                    {"type": "text", "text": "请简洁描述这张图片的内容，用于朋友圈评论参考："},
+                    {"type": "text", "text": "请一句话简洁描述这张图片的内容："},
                     {
                         "type": "image_url",
                         "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}
@@ -54,12 +61,9 @@ async def process_images_to_descriptions(urls: List[str],llm) -> List[str]:
                 ]
             )
 
-            # 调用视觉模型
+            # 调用视觉模型 - 统一使用同步方法并在线程池中执行
             try:
-                if hasattr(llm, 'ainvoke'):
-                    vision_result = await llm.ainvoke([vision_message])
-                else:
-                    vision_result = llm.invoke([vision_message])
+                vision_result = await asyncio.to_thread(llm.invoke, [vision_message])
                 print(f"[DEBUG] 视觉分析结果: {vision_result.content}")
                 descriptions.append(vision_result.content)
             except Exception as vision_error:
