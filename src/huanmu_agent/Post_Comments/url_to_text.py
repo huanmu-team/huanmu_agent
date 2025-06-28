@@ -34,7 +34,7 @@ async def process_images_to_descriptions(urls: List[str],llm) -> List[str]:
             # 下载图片
             print(f"[DEBUG] 开始下载图片: {url}")
             # 使用同步requests，在异步环境中直接调用
-            response = requests.get(url, timeout=10)
+            response = await asyncio.to_thread(requests.get, url, timeout=10)
             response.raise_for_status()
             print(f"[DEBUG] 图片下载成功，状态码: {response.status_code}")
 
