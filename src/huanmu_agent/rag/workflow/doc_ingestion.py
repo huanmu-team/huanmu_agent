@@ -5,7 +5,6 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, END
 
 from huanmu_agent.rag.embedding import embedding_docs
-from huanmu_agent.rag.milvus_wrapper import store_doc_to_milvus
 from huanmu_agent.utils.rag_utils import download_doc, load_and_chunk_word_document
 from huanmu_agent.rag import milvus_client
 class GraphStateInput(TypedDict):
