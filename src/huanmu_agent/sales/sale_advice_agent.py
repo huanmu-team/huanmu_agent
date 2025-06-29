@@ -99,7 +99,7 @@ async def chat_reply_agent_node(state: ChatReplyAgentState, config: RunnableConf
         
         new_current_conversation_messages = system_msg + user_msg
     else:
-        new_current_conversation_messages = current_conversation_messages+user_msg
+        new_current_conversation_messages = current_conversation_messages
     try:
 
         # Run blocking agent in a thread
