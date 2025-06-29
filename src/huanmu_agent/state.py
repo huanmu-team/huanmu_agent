@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Sequence, Optional
 from uuid import UUID
 
 from langchain_core.messages import AnyMessage
@@ -11,6 +11,41 @@ from langgraph.graph import add_messages
 from langgraph.managed import IsLastStep
 from typing_extensions import Annotated
 
+
+@dataclass
+class HumanControlState:#为后面加一些冗余字段6/28
+    """管理人工接管状态的数据类"""
+    
+    is_human_active: bool = False
+    """当前是否处于人工接管状态"""
+    
+    human_operator_id: Optional[str] = None
+    """当前接管的人工客服ID"""
+    
+    transfer_reason: Optional[str] = None
+    """转人工的原因，可以是'rescue'(救火),'progress'(推进),'deal'(成交)"""
+    
+    transfer_time: Optional[str] = None
+    """转人工的时间"""
+    
+    @property
+    def is_available(self) -> bool:
+        """检查是否可以转人工"""
+        return not self.is_human_active
+    
+    def activate_human(self, operator_id: str, reason: str, time: str) -> None:
+        """激活人工接管"""
+        self.is_human_active = True
+        self.human_operator_id = operator_id
+        self.transfer_reason = reason
+        self.transfer_time = time
+        
+    def deactivate_human(self) -> None:
+        """取消人工接管"""
+        self.is_human_active = False
+        self.human_operator_id = None
+        self.transfer_reason = None
+        self.transfer_time = None
 
 @dataclass
 class InputState:
@@ -37,6 +72,9 @@ class InputState:
     The `add_messages` annotation ensures that new messages are merged with existing ones,
     updating by ID to maintain an "append-only" state unless a message with the same ID is provided.
     """
+    
+    human_control: HumanControlState = field(default_factory=HumanControlState)
+    """人工接管状态控制"""
 
 
 @dataclass(kw_only=True)
