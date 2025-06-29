@@ -1,5 +1,5 @@
 GOOGLE_GEMINI_FLASH_MODEL = "gemini-2.5-flash-preview-05-20"
 GOOGLE_GEMINI_PRO_MODEL = "gemini-2.5-pro-preview-05-06"
-GOOGLE_GEMINI_PRO_MODEL = "google-vertexai/gemini-2.5-pro"
+GOOGLE_GEMINI_PRO_MODEL = "gemini-2.5-pro"
 GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
 GEMINI_EMBEDDING_MODEL_EX_03_07 = "gemini-embedding-exp-03-07"
