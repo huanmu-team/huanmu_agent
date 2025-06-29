@@ -11,5 +11,6 @@
     "doc_deleting": "./src/huanmu_agent/rag/workflow/doc_deleting.py:doc_deleting_workflow",
     "friend_post_comment_agent": "./src/huanmu_agent/Post_Comments/comment.py:comment_analysis_graph"
   },
+  
   "env": ".env"
 }

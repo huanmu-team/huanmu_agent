@@ -119,4 +119,4 @@ async def resume_ai_control(reason: str = "人工处理完成") -> str:
 #     return cast(dict[str, Any], await wrapped.ainvoke({"query": query}))
 
 
-TOOLS: List[Callable[..., Any]] = [request_human_assistance]
+TOOLS: List[Callable[..., Any]] = [request_human_assistance, get_current_time]
