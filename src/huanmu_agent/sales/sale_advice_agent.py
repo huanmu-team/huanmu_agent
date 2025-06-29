@@ -9,7 +9,7 @@ from langchain.chat_models import init_chat_model
 from typing import List, Optional
 from langchain_core.runnables import RunnableConfig
 import asyncio
-from constant import GOOGLE_GEMINI_FLASH_MODEL
+from constant import GOOGLE_GEMINI_FLASH_MODEL, GOOGLE_GEMINI_PRO_MODEL
 
 # --- System Prompt ---
 
@@ -57,7 +57,7 @@ class ChatReplyAgentOutput(TypedDict):
 
 # Initialize chat model (reuse constant to avoid import issues)
 chat_model = init_chat_model(
-    model=GOOGLE_GEMINI_FLASH_MODEL,
+    model=GOOGLE_GEMINI_PRO_MODEL,
     model_provider="google_vertexai",
     temperature=0.7,  # Balanced creativity
 )
@@ -66,7 +66,7 @@ chat_model = init_chat_model(
 def prompt(state: AgentState, config: RunnableConfig) -> List[AnyMessage]:
     reply_number = config["configurable"].get("number", 3)
     system_msg_content = f"{REPLY_SYSTEM_PROMPT} 回复数量: {reply_number}"
-    return [{"role": "system", "content": system_msg_content}] + state["messages"]
+    return [{"role": "system", "content": system_msg_content}] + state["messages"] + [{"role": "user", "content": "根据对话记录，请帮我生成销售或客服人员的聊天回复。"}]
 
 
 # Create agent

@@ -175,7 +175,13 @@ def build_profile_prompt(state: AgentState, config: RunnableConfig) -> List[Base
         "role": "system", 
         "content": formatted_prompt
     }]
-    messages.extend(state.get("messages", []))
+    user_msg = [
+            {
+                "role": "user",
+                "content": f"请帮我生成用户画像标签。",
+            }
+        ]
+    messages.extend(state.get("messages", [])+user_msg)
     return messages
 
 # 创建agent
