@@ -9,7 +9,7 @@
     "profile_agent": "./src/huanmu_agent/user_profile/profile_agent.py:profile_graph",
     "doc_ingestion": "./src/huanmu_agent/rag/workflow/doc_ingestion.py:doc_ingestion_workflow",
     "doc_deleting": "./src/huanmu_agent/rag/workflow/doc_deleting.py:doc_deleting_workflow",
-    "friend_post_comment_agent": "./src/huanmu_agent/Post_Comments/comment.py:comment_analysis_graph"
+    "friend_post_comment_agent": "./src/huanmu_agent/Post_Comments/comment_v2.py:comment_analysis_graph"
   },
   
   "env": ".env"
