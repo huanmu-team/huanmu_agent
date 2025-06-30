@@ -1,7 +1,7 @@
 """用户画像生成模块"""
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt.chat_agent_executor import AgentState
@@ -169,20 +169,20 @@ chat_model = init_chat_model(
 )
 
 def build_profile_prompt(state: AgentState, config: RunnableConfig) -> List[BaseMessage]:
+    """构建用户画像生成的提示"""
     # 直接使用硬编码的提示词
     formatted_prompt = PROFILE_SYSTEM_PROMPT
-    messages = [{
-        "role": "system", 
-        "content": formatted_prompt
-    }]
-    user_msg = [
-            {
-                "role": "user",
-                "content": f"请帮我生成用户画像标签。",
-            }
-        ]
-    messages.extend(state.get("messages", [])+user_msg)
-    return messages
+    system_message = SystemMessage(content=formatted_prompt)
+    
+    # 从状态中获取历史消息
+    history = state.get("messages", [])
+    
+    # 构建最终的用户消息
+    user_message = HumanMessage(content="请帮我生成用户画像标签。")
+    
+    # 组合所有消息
+    # 顺序: 系统提示 -> 历史消息 -> 当前用户请求
+    return [system_message] + history + [user_message]
 
 # 创建agent
 profile_agent = create_react_agent(
