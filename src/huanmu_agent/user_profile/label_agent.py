@@ -1,12 +1,14 @@
 """用户画像生成模块"""
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
+from typing import Sequence
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
+from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt.chat_agent_executor import AgentState
 from langchain.chat_models import init_chat_model
-from typing_extensions import TypedDict
+from typing_extensions import Annotated, TypedDict
 from langchain_core.runnables import RunnableConfig
 import asyncio
 from pathlib import Path
@@ -152,7 +154,7 @@ class ProfileLabelAgentConfigSchema(TypedDict):
     pass
 
 class ProfileLabelAgentStateInput(TypedDict):
-    messages: List[BaseMessage]
+    messages: Annotated[Sequence[BaseMessage], add_messages]
 
 class ProfileLabelAgentResponseFormat(BaseModel):
     user_profile_label: UserProfileStructure = Field(description="用户画像标签，可以为空")

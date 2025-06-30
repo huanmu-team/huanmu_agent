@@ -1,12 +1,13 @@
 from langchain_core.messages import AnyMessage
 from pydantic import BaseModel, Field
-from typing_extensions import TypedDict
+from typing_extensions import Annotated, TypedDict
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
+from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt.chat_agent_executor import AgentState
 from langchain.chat_models import init_chat_model
-from typing import List, Optional
+from typing import List, Optional, Sequence
 from langchain_core.runnables import RunnableConfig
 import asyncio
 from constant import GOOGLE_GEMINI_FLASH_MODEL, GOOGLE_GEMINI_PRO_MODEL
@@ -50,7 +51,7 @@ class ChatReplyConfigSchema(TypedDict):
     number: int
     
 class ChatReplyAgentStateInput(TypedDict):
-    messages: List[BaseMessage]
+    Annotated[Sequence[BaseMessage], add_messages]
 
 class ChatReplyAgentOutput(TypedDict):
     structured_response: Optional[FinalChatReplyResponseFormat]
