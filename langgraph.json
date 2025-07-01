@@ -6,7 +6,8 @@
     "sales_chat_suggestion_agent": "./src/huanmu_agent/sales/sale_advice_agent.py:sales_chat_suggestion_graph",
     "user_analysis_reports": "./src/huanmu_agent/analysis_report/user_analysis_reports.py:user_analysis_graph",
     "profile_label_agent": "./src/huanmu_agent/user_profile/label_agent.py:profile_label_graph",
-    "profile_agent": "./src/huanmu_agent/user_profile/profile_agent.py:profile_graph"
+    "profile_agent": "./src/huanmu_agent/user_profile/profile_agent.py:profile_graph",
+    "psychological_profiling_agent": "./src/huanmu_agent/user_profile/psychological_profiling_agent.py:psychological_profiling_graph"
   },
   "env": ".env"
 }
