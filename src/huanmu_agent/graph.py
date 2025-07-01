@@ -18,25 +18,6 @@ from huanmu_agent.state import InputState, State, SalesAgentStateOutput, HumanCo
 from huanmu_agent.tools import TOOLS, request_human_assistance
 from huanmu_agent.utils.langchain_utils import load_chat_model
 
-# 添加人工接管状态下的消息处理节点
-async def handle_human_takeover(state: State) -> Dict[str, Any]:
-    """处理人工接管状态下的消息"""
-    last_message = state.messages[-1]
-    
-    if isinstance(last_message, HumanMessage):
-        # 这是用户在人工接管状态下发送的新消息
-        # 返回一个提示消息，告知用户正在由人工处理
-        
-        return {
-            "messages": [AIMessage(content="")],
-            "last_message": "",
-        }
-    else:
-        # 保持现有状态
-        return {
-            "last_message": last_message.content if isinstance(last_message.content, str) else "",
-        }
-
 # Define the new routing node
 async def route_to_human_or_ai(state: State) -> Dict[str, Any]:
     """
@@ -72,7 +53,13 @@ async def route_to_human_or_ai(state: State) -> Dict[str, Any]:
 
     # 检查是否已经处于人工接管状态
     if state.human_control.is_human_active:
-        # 如果是人工消息，直接返回空字典，让消息继续传递到人工处理节点
+        # 在人工接管状态下，静默忽略新的用户消息
+        # 不添加任何内容到消息历史，直接结束流程
+        if isinstance(last_message, HumanMessage):
+            # 返回空状态，让系统直接结束，不处理用户消息
+            return {"last_message": ""}
+        
+        # 如果不是用户消息（比如状态更新），则允许通过
         return {"last_message": ""}
         
     configuration = Configuration.from_context()
@@ -130,8 +117,8 @@ async def call_model(state: State) -> Dict[str, Any]:
         # 如果最后一条消息是人工发送的，直接返回
         if isinstance(last_message, HumanMessage):
             return {
-                "messages": [AIMessage(content="[]")],
-                "last_message": "[]",
+                "messages": [AIMessage(content="人工客服正在处理您的问题...")],
+                "last_message": "人工客服正在处理您的问题...",
             }
         else:
             # 如果不是人工消息，返回现有的最后消息
@@ -191,7 +178,6 @@ builder = StateGraph(State, input=InputState, config_schema=Configuration, outpu
 builder.add_node("route_to_human_or_ai", route_to_human_or_ai)
 builder.add_node("call_model", call_model)
 builder.add_node("tools", ToolNode(TOOLS))
-builder.add_node("handle_human_takeover", handle_human_takeover)
 
 # Add a dedicated node for the human assistance tool
 async def enter_human_takeover(state: State) -> dict:
@@ -228,7 +214,7 @@ builder.add_node("human_assistance", enter_human_takeover)
 # Set the entrypoint to the new router node
 builder.add_edge(START, "route_to_human_or_ai")
 
-def should_route_to_human(state: State) -> Literal["human_assistance", "call_model", "handle_human_takeover"]:
+def should_route_to_human(state: State) -> Literal["human_assistance", "call_model", "__end__"]:
     """Determines whether the next step is human assistance or the main AI model."""
     # ---- 类型校正 ----
     if isinstance(state.human_control, dict):
@@ -241,9 +227,14 @@ def should_route_to_human(state: State) -> Literal["human_assistance", "call_mod
                 transfer_reason=state.human_control.get("transfer_reason"),
                 transfer_time=state.human_control.get("transfer_time"),
             )
-    # 如果已经处于人工接管状态，使用人工接管处理节点
+    
+    # 如果已经处于人工接管状态，直接结束，不进行任何处理
     if state.human_control.is_human_active:
-        return "handle_human_takeover"
+        last_message = state.messages[-1]
+        # 只有唤醒命令才允许继续处理
+        if isinstance(last_message, HumanMessage) and last_message.content == "起床了小七":
+            return "call_model"  # 唤醒命令会在route_to_human_or_ai中处理
+        return "__end__"
         
     # Check the last message in the state
     last_message = state.messages[-1]
@@ -261,7 +252,7 @@ builder.add_conditional_edges(
     {
         "human_assistance": "human_assistance", 
         "call_model": "call_model",
-        "handle_human_takeover": "handle_human_takeover"
+        "__end__": "__end__"
     },
 )
 
@@ -322,9 +313,6 @@ builder.add_edge("tools", "call_model")
 
 # After human assistance, we loop back to the main model
 builder.add_edge("human_assistance", "__end__")
-
-# Human takeover messages end immediately
-builder.add_edge("handle_human_takeover", "__end__")
 
 # Compile the builder into an executable graph
 graph = builder.compile(name="HuanMu Agent")
