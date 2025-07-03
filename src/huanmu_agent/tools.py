@@ -107,16 +107,61 @@ async def resume_ai_control(reason: str = "人工处理完成") -> str:
     return f"人工处理已完成，恢复AI控制。恢复时间：{time_str}，原因：{reason}"
 
 
-# async def search(query: str) -> Optional[dict[str, Any]]:
-#     """Search for general web results.
+@tool
+async def search_web(query: str) -> str:
+    """
+    联网搜索工具：使用Tavily搜索引擎实时检索互联网信息。
+    
+    主要用于：
+    - 获取最新新闻、时事
+    - 查询技术动态、市场价格、实时信息等
+    - 当知识库无法覆盖用户问题时，补充外部信息
+    
+    参数：
+        query (str): 用户的搜索查询内容
+    返回：
+        str: 搜索结果的简要摘要，或错误提示信息
+    异常处理：
+        - 如果未安装Tavily依赖，返回安装提示
+        - 其它异常返回详细错误信息，便于排查
+    """
+    try:
+        from langchain_community.tools.tavily_search import TavilySearchResults
+        
+        configuration = Configuration.from_context()
+        # 创建Tavily搜索工具，参数可根据配置灵活调整
+        tavily_search = TavilySearchResults(
+            max_results=getattr(configuration, 'max_search_results', 3),
+            search_depth="advanced",  # 更深入的搜索
+            include_answer=True,      # 包含AI生成的答案
+            include_raw_content=False, # 不包含原始内容以节省空间
+        )
+        # 执行异步搜索
+        search_results = await tavily_search.ainvoke({"query": query})
+        # 格式化搜索结果
+        if not search_results:
+            return "未找到相关的网络信息。"
+        formatted_results = "🌐 网络搜索结果：\n\n"
+        for i, result in enumerate(search_results[:getattr(configuration, 'max_search_results', 3)], 1):
+            title = result.get("title", "无标题")
+            content = result.get("content", "")
+            url = result.get("url", "")
+            # 限制内容长度，防止输出过长
+            if len(content) > 200:
+                content = content[:200] + "..."
+            formatted_results += f"{i}. {title}\n"
+            formatted_results += f"   {content}\n"
+            if url:
+                formatted_results += f"   来源: {url}\n"
+            formatted_results += "\n"
+        return formatted_results
+    except ImportError:
+        return "❌ Tavily搜索功能未安装。请安装 tavily-python 包。"
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"网络搜索错误详情：{error_details}")
+        return f"❌ 网络搜索出现错误：{str(e)}。建议稍后重试或联系技术支持。"
 
-#     This function performs a search using the Tavily search engine, which is designed
-#     to provide comprehensive, accurate, and trusted results. It's particularly useful
-#     for answering questions about current events.
-#     """
-#     configuration = Configuration.from_context()
-#     wrapped = TavilySearch(max_results=configuration.max_search_results)
-#     return cast(dict[str, Any], await wrapped.ainvoke({"query": query}))
 
-
-TOOLS: List[Callable[..., Any]] = [request_human_assistance, get_current_time]
+TOOLS: List[Callable[..., Any]] = [request_human_assistance, get_current_time, search_web]
