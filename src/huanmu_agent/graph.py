@@ -328,10 +328,9 @@ graph = builder.compile(name="HuanMu Agent")
 # =========================
 def remove_markdown(text: str) -> str:
     import re
-    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # 去除加粗（**文本**）
-    text = re.sub(r'\*([^*]+)\*', r'\1', text)      # 去除斜体（*文本*）
-    text = re.sub(r'# ', '', text)                  # 去除标题（# 标题）
-    text = re.sub(r'- ', '', text)                  # 去除无序列表（- 列表项）
-    text = re.sub(r'^\* ', '', text, flags=re.MULTILINE)  # 去除无序列表（* 列表项）
-    text = re.sub(r'\d+\. ', lambda m: m.group(0).replace('*', ''), text)  # 去除有序列表前的*
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # 去除加粗
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)      # 去除斜体
+    text = re.sub(r'# ', '', text)                  # 去除标题
+    text = re.sub(r'^\s*[-*•] ', '', text, flags=re.MULTILINE)  # 去除无序列表
+    text = re.sub(r'\d+\.\s*', '', text)            # 去除有序列表
     return text
