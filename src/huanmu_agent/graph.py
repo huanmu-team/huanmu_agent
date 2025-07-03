@@ -165,9 +165,14 @@ async def call_model(state: State) -> Dict[str, Any]:
             "last_message": content,
         }
 
-    # Return the model's response as a list to be added to existing messages
-    # Ensure last_message is always a string to avoid encoding errors in streaming response
+    # ========== 正则表达式规范输出：去除Markdown格式 ==========
+    # 对主回复做去Markdown格式处理，保证输出为纯文本
     last_message_content = response.content if isinstance(response.content, str) else str(response.content) if response.content else ""
+    last_message_content = remove_markdown(last_message_content)
+    # 对AI回复内容本身也做去Markdown处理，防止后续流程中再次出现格式符号
+    response.content = remove_markdown(response.content) if isinstance(response.content, str) else response.content
+    # ========== 正则表达式规范输出结束 ==========
+
     return {"messages": [response], "last_message": last_message_content}
 
 
@@ -316,3 +321,16 @@ builder.add_edge("human_assistance", "__end__")
 
 # Compile the builder into an executable graph
 graph = builder.compile(name="HuanMu Agent")
+
+# =========================
+# 正则表达式规范输出区域
+# 该函数用于去除模型输出中的 Markdown 格式，保证最终输出为纯文本，便于展示和后续处理
+# =========================
+def remove_markdown(text: str) -> str:
+    import re
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # 去除加粗（**文本**）
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)      # 去除斜体（*文本*）
+    text = re.sub(r'# ', '', text)                  # 去除标题（# 标题）
+    text = re.sub(r'- ', '', text)                  # 去除无序列表（- 列表项）
+    text = re.sub(r'\d+\. ', lambda m: m.group(0).replace('*', ''), text)  # 去除有序列表前的*
+    return text
