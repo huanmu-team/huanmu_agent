@@ -10,7 +10,7 @@ from langchain.chat_models import init_chat_model
 from typing import List, Optional, Sequence
 from langchain_core.runnables import RunnableConfig
 import asyncio
-from constant import GOOGLE_GEMINI_FLASH_MODEL, GOOGLE_GEMINI_PRO_MODEL
+from constant import OPENAI_GPT4_MINI
 
 # --- System Prompt ---
 
@@ -56,10 +56,11 @@ class ChatReplyAgentStateInput(TypedDict):
 class ChatReplyAgentOutput(TypedDict):
     structured_response: Optional[FinalChatReplyResponseFormat]
 
+provider, model_name = OPENAI_GPT4_MINI.split('/', 1)
 # Initialize chat model (reuse constant to avoid import issues)
 chat_model = init_chat_model(
-    model=GOOGLE_GEMINI_PRO_MODEL,
-    model_provider="google_vertexai",
+    model=model_name,
+    model_provider=provider,
     temperature=0.7,  # Balanced creativity
 )
 # Prompt builder

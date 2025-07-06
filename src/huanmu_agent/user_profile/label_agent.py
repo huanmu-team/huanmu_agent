@@ -13,7 +13,7 @@ from langchain_core.runnables import RunnableConfig
 import asyncio
 from pathlib import Path
 
-from constant import GOOGLE_GEMINI_FLASH_MODEL, GOOGLE_GEMINI_PRO_MODEL
+from constant import OPENAI_GPT4_MINI
 
 # 加载profile_variables.py
 def load_profile_variables() -> Dict[str, Any]:
@@ -163,10 +163,11 @@ class ProfileLabelAgentResponseFormat(BaseModel):
 class ProfileLabelAgentStateOutput(TypedDict):
     structured_response: ProfileLabelAgentResponseFormat
 
+provider, model_name = OPENAI_GPT4_MINI.split('/', 1)
 # 初始化模型
 chat_model = init_chat_model(
-    model=GOOGLE_GEMINI_PRO_MODEL,
-    model_provider="google_vertexai",
+    model=model_name,
+    model_provider=provider,
     temperature=0.7,  # Balanced creativity
 )
 

@@ -10,7 +10,7 @@ from typing_extensions import TypedDict
 from langchain_core.runnables import RunnableConfig
 import asyncio
 
-from constant import GOOGLE_GEMINI_FLASH_MODEL
+from constant import OPENAI_GPT4_MINI
 
 PROFILE_SYSTEM_PROMPT = """
 你是一个专业的用户画像生成助手。根据用户提供的基本信息、行为数据和偏好，生成详细的用户画像。
@@ -53,10 +53,11 @@ class ProfileAgentStateOutput(TypedDict):
     structured_response: UserProfileStructure
 
 
+provider, model_name = OPENAI_GPT4_MINI.split('/', 1)
 # 初始化模型
 chat_model = init_chat_model(
-    model=GOOGLE_GEMINI_FLASH_MODEL,
-    model_provider="google_vertexai",
+    model=model_name,
+    model_provider=provider,
     temperature=0.7,  # Balanced creativity
 )
 

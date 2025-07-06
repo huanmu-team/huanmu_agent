@@ -8,7 +8,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import asyncio
 from huanmu_agent.Post_Comments.url_to_text import process_images_to_descriptions
-from constant import GOOGLE_GEMINI_FLASH_MODEL
+from constant import OPENAI_GPT4_MINI
 class CharacterprofileConfigSchema(TypedDict):
     """人物参数"""
     agent_name: str
@@ -33,10 +33,11 @@ class CommentOutput(BaseModel):
     structured_response: Optional[str]
     error_message: Optional[str] = Field(default=None, description="出错时的错误信息")
 
+provider, model_name = OPENAI_GPT4_MINI.split('/', 1)
 # 初始化模型
 llm = init_chat_model(
-    model=GOOGLE_GEMINI_FLASH_MODEL,
-    model_provider="google_vertexai",
+    model=model_name,
+    model_provider=provider,
     temperature=0.7,
 )
 

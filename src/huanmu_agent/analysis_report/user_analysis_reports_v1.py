@@ -8,7 +8,7 @@ from typing_extensions import TypedDict
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import asyncio
-from constant import GOOGLE_GEMINI_FLASH_MODEL
+from constant import OPENAI_GPT4_MINI
 
 class UserChunkSummaryResponse(BaseModel):
     user_chunk_summary: Optional[str] = Field(description="用户情况总结")
@@ -45,10 +45,11 @@ class UserAnalysisAgentStateOutput(TypedDict):
     structured_response: Optional[str]
 
 
+provider, model_name = OPENAI_GPT4_MINI.split('/', 1)
 # llm = init_chat_model(model="gpt-4o", temperature=0.7, model_provider="openai")
 llm = init_chat_model(
-    model=GOOGLE_GEMINI_FLASH_MODEL,
-    model_provider="google_vertexai",
+    model=model_name,
+    model_provider=provider,
     temperature=0.7,  # Balanced creativity
 )
 def prompt_recommendation(state: AgentState) -> List[AnyMessage]:
